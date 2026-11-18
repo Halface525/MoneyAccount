@@ -8,14 +8,16 @@
 
 ## 安装
 
-已经打包好一个签名的安装包，直接装到手机上：
+已经打包好签名的安装包，两种拿法：
 
-```
-release/suishouji-1.3.0.apk
-```
+- **直接下载**：[最新 Release](https://github.com/nimingzhe-ding/MoneyAccount/releases/latest) 里的
+  `suishouji-1.3.0.apk`，手机上点开就能装。
+- **仓库里**：[`release/suishouji-1.3.0.apk`](release/suishouji-1.3.0.apk)，随代码一起在版本库中。
 
-传到手机（微信/数据线/网盘）点开安装即可，需要在系统里允许「安装未知来源应用」。
-首次打开会看到深色启动页 + 金色 ¥ 图标。
+装的时候需要在系统里允许「安装未知来源应用」。首次打开会看到深色启动页 + 金色 ¥ 图标。
+
+App 里点「设置 → 关于 → 版本」会检查更新：只读一次仓库里的 `package.json` 比版本号，
+**不上传任何记账数据**，发现有新版会给出 Release 下载页入口。
 
 自己重新构建：
 
@@ -47,8 +49,12 @@ npm run android:release
 `versionName`，并按 `major*10000 + minor*100 + patch` 算出单调递增的 `versionCode`
 （1.0.1 → 10001），否则安卓会拒绝覆盖安装。界面里显示的版本号也来自同一个值。
 
-App 里点「设置 → 关于 → 版本」可以检查更新：只请求一次仓库的 `package.json`
-比较版本号，**不上传任何记账数据**。发现有新版会给出仓库下载页入口。
+打完包再发个 Release，App 里的「检查更新」才有地方可下载：
+
+```bash
+git tag v1.3.0 && git push origin v1.3.0
+gh release create v1.3.0 release/suishouji-1.3.0.apk --title "随手记 1.3.0"
+```
 
 ## 数据存在哪
 
