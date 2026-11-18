@@ -16,7 +16,7 @@
     <string name="heat_streak">连续 %1$d 天</string>
     <string name="heat_streak_none">今天还没记</string>
     <string name="quick_add">记一笔</string>
-    <string name="heat_spent">本月支出 %1$s</string>
+    <string name="heat_spent">今日 %1$s · 本月 %2$s</string>
     <string name="heat_left">剩余 %1$s</string>
     <string name="heat_over">超支 %1$s</string>
     <string name="heat_no_budget">未设预算</string>

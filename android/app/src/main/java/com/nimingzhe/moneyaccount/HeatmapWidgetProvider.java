@@ -14,12 +14,16 @@ import android.graphics.Paint;
 import android.net.Uri;
 import android.widget.RemoteViews;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
- * Wide home screen widget: a GitHub-style bookkeeping heatmap plus quick actions.
+ * Wide home screen widget: a GitHub-style bookkeeping heatmap.
  *
- * The web layer sends a compact "7 rows x N weeks" matrix of daily expense counts
- * (see src/lib/widget.ts). Drawing it as a bitmap here avoids shipping hundreds of
- * Views through RemoteViews, which is neither allowed nor cheap.
+ * The web layer sends a compact "7 rows x 19 weeks" matrix of 0-4 intensity levels,
+ * computed by the same helper the in-app Heatmap uses (src/lib/heatmap.ts). Drawing
+ * it as a bitmap here avoids shipping hundreds of Views through RemoteViews.
  */
 public class HeatmapWidgetProvider extends AppWidgetProvider {
 
@@ -55,11 +59,17 @@ public class HeatmapWidgetProvider extends AppWidgetProvider {
                 : context.getString(R.string.heat_streak_none)
         );
 
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(new Date());
+        long todayExpense = today.equals(sp.getString("today", "")) ? sp.getLong("todayExpense", 0) : 0;
         long monthExpense = sp.getLong("monthExpense", 0);
         long monthBudget = sp.getLong("monthBudget", 0);
         views.setTextViewText(
             R.id.heat_spent,
-            context.getString(R.string.heat_spent, MoneyWidgetProvider.money(monthExpense))
+            context.getString(
+                R.string.heat_spent,
+                MoneyWidgetProvider.money(todayExpense),
+                MoneyWidgetProvider.money(monthExpense)
+            )
         );
         if (monthBudget > 0) {
             long left = monthBudget - monthExpense;

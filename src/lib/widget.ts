@@ -10,6 +10,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import dayjs from 'dayjs'
 import type { Budget, Transaction } from '../db/types'
+import { buildHeatmapData, heatmapLevel, heatmapMax } from './heatmap'
 
 /** 组件需要的最小数据集，金额单位统一是「分」 */
 export interface WidgetSnapshot {
@@ -22,7 +23,7 @@ export interface WidgetSnapshot {
   monthExpense: number
   /** 本月总预算，0 表示没设置 */
   monthBudget: number
-  /** 打卡热力图：7 行（周一→周日），每行 18 周，-1 表示未来 */
+  /** 打卡热力图：7 行（周一→周日），每行 19 周，0-4 是深浅档位，-1 表示未来 */
   heatRows: string
   /** 连续记账天数 */
   streak: number
@@ -36,42 +37,24 @@ interface WidgetPlugin {
 
 const Widget = registerPlugin<WidgetPlugin>('Widget')
 
-/**
- * 热力图横跨的周数。
- * 去掉快捷按钮后，热力图区域大约 2.5:1，18 周（约四个月）正好铺满，
- * 格子也能保持正方形；周数太多反而会把格子缩小。
- */
-const HEAT_WEEKS = 18
+/** 和 App 里的 Heatmap 组件保持一致 */
+const HEAT_WEEKS = 19
 
-function buildHeatmap(transactions: Transaction[], now: dayjs.Dayjs) {
-  // 每天记了几笔（只看支出，和 App 里的打卡热力图口径一致）
-  const countByDay = new Map<string, number>()
-  for (const t of transactions) {
-    if (t.type !== 'expense') continue
-    countByDay.set(t.date, (countByDay.get(t.date) ?? 0) + 1)
-  }
+function buildHeatmap(transactions: Transaction[]) {
+  // 直接复用 App 里的计算逻辑，保证组件和统计页的深浅规则完全一致
+  const data = buildHeatmapData(transactions, HEAT_WEEKS)
 
-  // 周一为一周的第一天：把今天所在周对齐到周一，再往前推 24 周
-  const mondayOffset = (now.day() + 6) % 7
-  const start = now.subtract(mondayOffset, 'day').subtract(HEAT_WEEKS - 1, 'week')
-
+  // 组件固定用「金额」视图：同一天花得越多颜色越深
+  const max = heatmapMax(data.days, 'amount')
   const rows: number[][] = Array.from({ length: 7 }, () => [])
   for (let w = 0; w < HEAT_WEEKS; w++) {
     for (let d = 0; d < 7; d++) {
-      const date = start.add(w, 'week').add(d, 'day')
-      rows[d].push(date.isAfter(now, 'day') ? -1 : (countByDay.get(date.format('YYYY-MM-DD')) ?? 0))
+      const day = data.days[w * 7 + d]
+      rows[d].push(day.future ? -1 : heatmapLevel(day, max, 'amount'))
     }
   }
 
-  // 连续记账天数：从今天往前数，今天没记就算 0
-  let streak = 0
-  for (let i = 0; i < 3650; i++) {
-    const day = now.subtract(i, 'day').format('YYYY-MM-DD')
-    if ((countByDay.get(day) ?? 0) > 0) streak++
-    else break
-  }
-
-  return { heatRows: rows.map((r) => r.join(',')).join(';'), streak }
+  return { heatRows: rows.map((r) => r.join(',')).join(';'), streak: data.streak }
 }
 
 export function buildSnapshot(
@@ -103,7 +86,7 @@ export function buildSnapshot(
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const resolved = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme
 
-  const heat = buildHeatmap(transactions, now)
+  const heat = buildHeatmap(transactions)
 
   return {
     today,

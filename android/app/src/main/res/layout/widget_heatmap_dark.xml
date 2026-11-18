@@ -70,7 +70,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="本月支出 ¥0.00"
+            android:text="今日 ¥0.00 · 本月 ¥0.00"
             android:textColor="#B3A48F"
             android:textSize="11sp"
             android:fontFeatureSettings="tnum"
