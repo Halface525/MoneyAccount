@@ -31,6 +31,13 @@ export default function MinePage({ navigate }: { navigate: (to: string) => void 
 
   const entries = [
     {
+      icon: '💬',
+      label: '对话记账',
+      value: '一句话入账',
+      to: '/chat',
+      color: '#D97F35',
+    },
+    {
       icon: <IconWallet size={18} />,
       label: '账户管理',
       value: `${accounts.length} 个账户`,

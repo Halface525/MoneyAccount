@@ -1,6 +1,7 @@
 # 随手记 · 记账
 
-一款给自己用的极简记账 App。**只有安卓 App 一种形态**，不联网、不注册、不上传。
+一款给自己用的极简记账 App。**只有安卓 App 一种形态**，不注册、不上传，
+默认也不联网——**打字或说话记一笔**，本地就能拆出金额、分类、账户。
 
 账本不是存在浏览器缓存里，而是写成手机里一个真实的文件：
 `Documents/随手记/随手记-账本.json`。卸载重装、清除应用数据、换手机，
@@ -11,8 +12,8 @@
 已经打包好签名的安装包，两种拿法：
 
 - **直接下载**：[最新 Release](https://github.com/nimingzhe-ding/MoneyAccount/releases/latest) 里的
-  `suishouji-1.3.0.apk`，手机上点开就能装。
-- **仓库里**：[`release/suishouji-1.3.0.apk`](release/suishouji-1.3.0.apk)，随代码一起在版本库中。
+  `suishouji-1.4.0.apk`，手机上点开就能装。
+- **仓库里**：[`release/suishouji-1.4.0.apk`](release/suishouji-1.4.0.apk)，随代码一起在版本库中。
 
 装的时候需要在系统里允许「安装未知来源应用」。首次打开会看到深色启动页 + 金色 ¥ 图标。
 
@@ -52,8 +53,8 @@ npm run android:release
 打完包再发个 Release，App 里的「检查更新」才有地方可下载：
 
 ```bash
-git tag v1.3.0 && git push origin v1.3.0
-gh release create v1.3.0 release/suishouji-1.3.0.apk --title "随手记 1.3.0"
+git tag v1.4.0 && git push origin v1.4.0
+gh release create v1.4.0 release/suishouji-1.4.0.apk --title "随手记 1.4.0"
 ```
 
 ## 数据存在哪
@@ -86,10 +87,15 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | --- | --- | --- |
 | ![周期账单](docs/screenshots/06-recurring.png) | ![我的](docs/screenshots/08-mine.png) | ![设置](docs/screenshots/09-settings.png) |
 
+| 对话记账 | AI 设置 |
+| --- | --- |
+| ![对话记账](docs/screenshots/10-chat.png) | ![AI 设置](docs/screenshots/11-ai.png) |
+
 ## 功能
 
 | 模块 | 你能做什么 |
 | --- | --- |
+| 对话记账 | 说一句「昨天午饭 25 微信」→ 自动拆出金额、分类、账户、日期，卡片核对后一起入账；一句话几笔也能拆，记错了可撤销 |
 | 极速记账 | 数字键盘输金额 → 点分类图标 → 完成。可选账户、日期时间、备注 |
 | 三种流向 | 支出 / 收入 / 转账（账户间转账不计入收支统计） |
 | 多账户 | 微信、支付宝、储蓄卡、信用卡、现金，可增删改名改色；信用卡可设额度 |
@@ -127,11 +133,13 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 src/
   db/         types.ts 数据模型（金额单位：分） · seed.ts 预置分类/账户 · index.ts Dexie 打开与迁移
   lib/        format.ts 金额日期格式化 · store.tsx 全局数据与主题 · router.tsx hash 路由 · recurring.ts 周期账单补记
+              nlp.ts 本地中文记账解析（金额/分类/账户/日期/多笔，纯规则、不联网）
+              ai.ts 可选的 DeepSeek 解析（自己填 Key 才启用，失败自动退回本地规则）
               native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链
               update.ts 检查更新（只读远端 package.json 的版本号）
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
               Heatmap 打卡热力图 · CategoryEditor 分类编辑面板（记账页与分类页共用）
-  pages/      HomePage 首页 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
+  pages/      HomePage 首页 · ChatPage 对话记账 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
               BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
               CategoriesPage 分类 · MinePage 我的 · SettingsPage 设置
   styles/     global.css 全部样式（CSS 变量驱动的深浅色主题）
@@ -143,6 +151,38 @@ android/      Capacitor 生成的安卓工程（图标、启动图、签名配�
 ## 技术栈
 
 React 19 · TypeScript · Vite · Dexie（内存库）· dayjs · Capacitor 6（打包安卓）
+可选：DeepSeek API（`deepseek-chat` / `deepseek-reasoner`），不填 Key 完全不联网
+
+## 对话记账
+
+首页快捷键里的「💬 对话记账」，或从「我的 → 对话记账」进去，直接说人话：
+
+```
+午饭 25 微信
+昨天超市 88 支付宝
+今天地铁4元 打车16元 微信
+从储蓄卡转 1000 到微信
+```
+
+它会拆成一张张卡片，每张都能点开改分类、改账户、改日期、改备注，核对完
+「全部入账（N）」一次性写进账本，后悔了点「撤销」整批退回。
+
+**默认是本地规则**：`src/lib/nlp.ts` 用正则 + 关键词匹配中文，认金额（`25`
+`二十五块` `9块9` `¥30` `1.2万`）、认分类（`火锅`→餐饮、`打车`→交通）、认账户
+（`微信` `支付宝` `储蓄卡` `信用卡` `现金`）、认时间（`昨晚` `上周三` `5月3日`
+`下午3点`），一句话里说几笔就拆几笔。不联网、不发请求、零延迟。
+
+### 想更聪明一点：接 DeepSeek（可选）
+
+「设置 → AI 记账」里填自己的 API Key（在
+[platform.deepseek.com](https://platform.deepseek.com/api_keys) 创建），
+就能把「早上跟同事吃的那个牛肉面 28，刷的支付宝」这种绕的说法也认出来。
+
+- **Key 只存在这台手机上**（写进本地数据库，不进备份文件、不上传）。
+- **只发必要信息**：当月支出汇总、分类名、账户名、各账户余额——不发送单笔明细。
+- **随时可关**：关掉开关或删掉 Key，立刻回到纯本地规则。
+- **失败自动兜底**：网络不通、Key 过期、余额不足，都会用本地规则再解析一遍，
+  并在气泡里说明原因，不会卡住不让记账。
 
 ## 数据安全
 

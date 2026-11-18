@@ -435,8 +435,8 @@ textarea {
 /* ---------- Quick shortcuts ---------- */
 .shortcuts {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
   margin-top: 14px;
 }
 
@@ -955,6 +955,13 @@ textarea {
 .btn-ghost {
   background: var(--surface-3);
   color: var(--text-2);
+}
+
+.btn-sm {
+  padding: 7px 13px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .btn-block {
@@ -1629,4 +1636,354 @@ textarea {
   margin-top: 2px;
   font-size: 11.5px;
   color: var(--text-3);
+}
+
+/* ---------- Chat page ---------- */
+.chat-page {
+  /* 没有 tabbar，底部留给输入条 */
+  padding-bottom: calc(var(--safe-b) + 96px);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.chat-page .topbar {
+  align-items: center;
+  padding: 6px 0 10px;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+
+.chat-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.chat-msg.user {
+  justify-content: flex-end;
+}
+
+.chat-avatar {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  background: var(--accent-soft);
+  margin-top: 2px;
+}
+
+.chat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: calc(100% - 40px);
+  min-width: 0;
+}
+
+.chat-msg.user .chat-col {
+  align-items: flex-end;
+  max-width: 78%;
+}
+
+.bubble {
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+}
+
+.chat-msg.user .bubble {
+  background: var(--accent-soft);
+  border-color: transparent;
+  border-bottom-right-radius: 6px;
+}
+
+.chat-msg.bot .bubble {
+  border-bottom-left-radius: 6px;
+}
+
+/* 待确认草稿卡 */
+.draft-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 11px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: draft-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes draft-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.99);
+  }
+}
+
+.draft-card.done {
+  opacity: 0.55;
+}
+
+.draft-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.draft-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 560;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.draft-type {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.draft-amount {
+  flex: none;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  padding: 2px 4px;
+  border-radius: 8px;
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.draft-amount.empty {
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.draft-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.draft-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.draft-warn {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-right: auto;
+}
+
+/* 入账回执 */
+.chat-commit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: var(--positive-soft);
+  color: var(--positive);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.link-btn {
+  font-size: 12.5px;
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 首次进入的示例 */
+.chat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 2px 0 10px;
+}
+
+/* 底部输入条 */
+.chat-input-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 520px;
+  padding: 10px 14px calc(10px + var(--safe-b));
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: linear-gradient(to top, var(--bg) 62%, transparent);
+  z-index: 40;
+}
+
+.chat-input {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-input textarea {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  resize: none;
+  font-size: 14.5px;
+  line-height: 1.45;
+  max-height: 96px;
+  padding: 4px 0;
+  font-family: inherit;
+}
+
+.chat-send {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(148deg, #f7c46b 0%, #e79a3f 52%, #d0792a 100%);
+  color: #3a2410;
+  box-shadow: 0 6px 16px -8px rgba(208, 144, 44, 0.9);
+  transition: transform 0.14s, opacity 0.14s;
+}
+
+.chat-send:active {
+  transform: scale(0.92);
+}
+
+.chat-send:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+@media (max-width: 360px) {
+  .shortcuts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.draft-title.as-btn {
+  padding: 0;
+  text-align: left;
+  color: var(--text);
+}
+
+.draft-caret {
+  flex: none;
+  font-size: 9px;
+  color: var(--text-3);
+  margin-left: -2px;
+}
+
+/* ---------- 对话记账：AI 思考中 ---------- */
+.bubble.typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 16px;
+}
+.bubble.typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+  animation: typing-bounce 1.1s infinite ease-in-out;
+}
+.bubble.typing span:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.bubble.typing span:nth-child(3) {
+  animation-delay: 0.28s;
+}
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+  opacity: 0.85;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- 开关 ---------- */
+.switch {
+  width: 40px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--surface-3);
+  position: relative;
+  flex: none;
+  transition: background 0.18s ease;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(96, 66, 40, 0.28);
+  transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.switch.on {
+  background: var(--accent);
+}
+.switch.on::after {
+  transform: translateX(16px);
 }

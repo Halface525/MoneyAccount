@@ -25,6 +25,15 @@ import {
 } from '../lib/datafile'
 import Sheet from '../components/Sheet'
 import {
+  AI_MODELS,
+  aiReady,
+  loadAiConfig,
+  saveAiConfig,
+  testAi,
+  AiError,
+  type AiConfig,
+} from '../lib/ai'
+import {
   IconChevronLeft,
   IconChevronRight,
   IconDownload,
@@ -50,6 +59,16 @@ export default function SettingsPage({
   const [showArchives, setShowArchives] = useState(false)
   const [dirLabel, setDirLabel] = useState(FILE_PATH_HINT)
   const [access, setAccess] = useState(true)
+  const [showAi, setShowAi] = useState(false)
+  const [aiCfg, setAiCfg] = useState<AiConfig>({
+    apiKey: '',
+    model: 'deepseek-chat',
+    enabled: true,
+  })
+
+  useEffect(() => {
+    void loadAiConfig().then(setAiCfg)
+  }, [])
 
   useEffect(() => {
     const off = onSaved(setSaveState)
@@ -333,6 +352,35 @@ export default function SettingsPage({
 
       <section className="section">
         <div className="section-head">
+          <h2>AI 记账</h2>
+          <span className="more">{aiReady(aiCfg) ? '已开启' : '未配置'}</span>
+        </div>
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <button className="list-row" onClick={() => setShowAi(true)}>
+            <span className="lbl">模型服务</span>
+            <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
+              {aiCfg.apiKey ? AI_MODELS.find((m) => m.id === aiCfg.model)?.label ?? aiCfg.model : '还没填 API Key'}
+            </span>
+            <IconChevronRight size={16} className="chev" />
+          </button>
+          <div className="list-row" style={{ alignItems: 'flex-start' }}>
+            <span className="lbl">用途</span>
+            <span
+              className="val"
+              style={{ fontFamily: 'var(--font-sans)', textAlign: 'right', lineHeight: 1.5, fontSize: 12 }}
+            >
+              只说「昨天午饭 25 微信」这类话，<br />
+              帮你拆成分类和账户
+            </span>
+          </div>
+        </div>
+        <p className="small muted" style={{ padding: '8px 4px 0', lineHeight: 1.6 }}>
+          Key 只存在这台手机上。聊天时会把当月支出汇总和分类账户名发给 DeepSeek，不发送单笔明细。
+        </p>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
           <h2>关于</h2>
         </div>
         <div className="card" style={{ overflow: 'hidden' }}>
@@ -355,6 +403,14 @@ export default function SettingsPage({
           </div>
         </div>
       </section>
+
+      {showAi && (
+        <AiSettings
+          cfg={aiCfg}
+          onChange={setAiCfg}
+          onClose={() => setShowAi(false)}
+        />
+      )}
 
       {showArchives && (
         <Sheet title="历史留档" onClose={() => setShowArchives(false)}>
@@ -428,5 +484,142 @@ export default function SettingsPage({
       )}
 
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* AI 设置                                                              */
+/* ------------------------------------------------------------------ */
+
+function AiSettings({
+  cfg,
+  onChange,
+  onClose,
+}: {
+  cfg: AiConfig
+  onChange: (c: AiConfig) => void
+  onClose: () => void
+}) {
+  const [key, setKey] = useState(cfg.apiKey)
+  const [model, setModel] = useState(cfg.model)
+  const [enabled, setEnabled] = useState(cfg.enabled)
+  const [testing, setTesting] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const dirty =
+    key.trim() !== cfg.apiKey || model !== cfg.model || enabled !== cfg.enabled
+
+  const persist = async (patch: Partial<AiConfig>) => {
+    const next = await saveAiConfig(patch)
+    onChange(next)
+  }
+
+  const save = async () => {
+    await persist({ apiKey: key.trim(), model, enabled })
+    onClose()
+  }
+
+  const runTest = async () => {
+    if (!key.trim()) {
+      setResult({ ok: false, text: '先填 API Key' })
+      return
+    }
+    setTesting(true)
+    setResult(null)
+    try {
+      const reply = await testAi({ apiKey: key.trim(), model, enabled: true })
+      setResult({ ok: true, text: `连上了：${reply}` })
+    } catch (e) {
+      const text =
+        e instanceof AiError
+          ? e.kind === 'auth'
+            ? 'Key 不对，检查一下有没有复制完整'
+            : e.kind === 'quota'
+              ? '账户余额不足'
+              : e.kind === 'rate'
+                ? '请求太频繁，等一下再试'
+                : e.kind === 'network'
+                  ? '网络连不上，或请求超时'
+                  : e.message
+          : '测试失败'
+      setResult({ ok: false, text })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  return (
+    <Sheet title="AI 记账" onClose={onClose}>
+      <div className="field" style={{ marginBottom: 10 }}>
+        <span className="lbl">API Key</span>
+        <input
+          type="password"
+          placeholder="sk-…"
+          value={key}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => setKey(e.target.value)}
+          style={{ textAlign: 'left', fontSize: 14 }}
+        />
+      </div>
+      <p className="small muted" style={{ margin: '0 4px 14px', lineHeight: 1.6 }}>
+        在 platform.deepseek.com 的「API Keys」里创建，只存在本机，不会上传到别处。
+      </p>
+
+      <div className="lbl" style={{ margin: '0 4px 8px', fontSize: 13 }}>模型</div>
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 12 }}>
+        {AI_MODELS.map((m) => (
+          <button
+            key={m.id}
+            className="list-row"
+            onClick={() => setModel(m.id)}
+            style={model === m.id ? { background: 'var(--accent-soft)' } : undefined}
+          >
+            <span className="lbl" style={{ color: 'var(--text)', fontWeight: 550 }}>{m.label}</span>
+            <span className="val" style={{ fontFamily: 'var(--font-sans)', fontSize: 12 }}>
+              {m.hint}
+            </span>
+            {model === m.id && <span className="chip">选中</span>}
+          </button>
+        ))}
+      </div>
+
+      <button
+        className="list-row card"
+        onClick={() => setEnabled((v) => !v)}
+        style={{ marginBottom: 12, width: '100%' }}
+      >
+        <span className="lbl">启用 AI</span>
+        <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
+          {enabled ? '开' : '关（只用本地识别）'}
+        </span>
+        <span className={'switch' + (enabled ? ' on' : '')} aria-hidden />
+      </button>
+
+      {result && (
+        <div
+          className="small"
+          style={{
+            margin: '0 4px 12px',
+            padding: '10px 12px',
+            borderRadius: 'var(--radius-sm)',
+            background: result.ok ? 'color-mix(in srgb, var(--positive) 14%, transparent)' : 'color-mix(in srgb, var(--negative) 14%, transparent)',
+            color: result.ok ? 'var(--positive)' : 'var(--negative)',
+            lineHeight: 1.5,
+          }}
+        >
+          {result.text}
+        </div>
+      )}
+
+      <div className="row" style={{ gap: 8 }}>
+        <button className="btn btn-ghost" onClick={runTest} disabled={testing}>
+          {testing ? '测试中…' : '测试连接'}
+        </button>
+        <button className="btn btn-primary" onClick={save} disabled={!dirty && !result}>
+          保存
+        </button>
+      </div>
+    </Sheet>
   )
 }

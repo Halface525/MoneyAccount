@@ -13,6 +13,7 @@ import AccountsPage from './pages/AccountsPage'
 import RecurringPage from './pages/RecurringPage'
 import SettingsPage from './pages/SettingsPage'
 import CategoriesPage from './pages/CategoriesPage'
+import ChatPage from './pages/ChatPage'
 import FileAccessGate from './components/FileAccessGate'
 
 const TABS = ['home', 'list', 'stats', 'mine']
@@ -81,6 +82,9 @@ export default function App() {
       break
     case 'categories':
       content = <CategoriesPage back={back} />
+      break
+    case 'chat':
+      content = <ChatPage back={back} navigate={navigate} />
       break
     case 'add':
       content = null

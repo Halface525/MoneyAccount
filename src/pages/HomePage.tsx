@@ -66,6 +66,7 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
   const heroMoney = splitMoney(stats.expense)
 
   const shortcuts = [
+    { em: '💬', label: '对话记账', go: () => navigate('/chat') },
     { em: '🍜', label: '餐饮', go: () => navigate('/add?cat=c_food') },
     { em: '🚇', label: '交通', go: () => navigate('/add?cat=c_transport') },
     { em: '🛍️', label: '购物', go: () => navigate('/add?cat=c_shopping') },
