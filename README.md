@@ -1,9 +1,37 @@
 # 随手记 · 记账
 
 一款给自己用的极简记账 App。数据全部留在本机（IndexedDB），不联网、不注册、不上传。
-做成 PWA，可以「添加到主屏幕」像原生 App 一样全屏打开，断网也能用。
+同一套代码可以打包成 **安卓 APK**，也可以当 **PWA** 添加到主屏幕。
 
-## 现在就能用
+## 安卓 APK（推荐）
+
+已经打包好一个签名的安装包，直接装到手机上：
+
+```
+android/app/build/outputs/apk/release/随手记-1.0.0-release.apk
+```
+
+传到手机（微信/数据线/网盘）点开安装即可，需要在系统里允许「安装未知来源应用」。
+首次打开会看到深色启动页 + 金色 ¥ 图标。
+
+自己重新构建：
+
+```bash
+npm install
+
+# 一次性准备：装 Android SDK（platforms;android-34 + build-tools;34.0.0）与 JDK 17
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+
+npm run android:release   # 产物在 android/app/build/outputs/apk/release/
+npm run android:debug     # 调试包，可直接 adb install
+```
+
+> 签名密钥在 `android/app/moneyaccount.keystore`（密码 `moneyaccount`），
+> `android/keystore.properties` 与密钥文件都已加入 `.gitignore`，不进版本库。
+> 换机重装记得带上这两个文件，否则无法覆盖升级已有安装。
+
+## 网页 / PWA
 
 ```bash
 npm install
@@ -68,6 +96,7 @@ npm run serve:https
 src/
   db/         types.ts 数据模型（金额单位：分） · seed.ts 预置分类/账户 · index.ts Dexie 打开与迁移
   lib/        format.ts 金额日期格式化 · store.tsx 全局数据与主题 · router.tsx hash 路由 · recurring.ts 周期账单补记
+              native.ts Capacitor 桥接：状态栏、返回键、文件导出
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
   pages/      HomePage 首页 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
               BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
@@ -75,11 +104,12 @@ src/
   styles/     global.css 全部样式（CSS 变量驱动的深浅色主题）
 scripts/
   serve.mjs   本地静态服务器，--https 时自动生成自签证书
+android/      Capacitor 生成的安卓工程（图标、启动图、签名配置都在这里）
 ```
 
 ## 技术栈
 
-React 19 · TypeScript · Vite · Dexie（IndexedDB）· dayjs · vite-plugin-pwa
+React 19 · TypeScript · Vite · Dexie（IndexedDB）· dayjs · vite-plugin-pwa · Capacitor 6（打包安卓）
 
 ## 数据安全
 
