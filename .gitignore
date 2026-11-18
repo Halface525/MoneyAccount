@@ -1,0 +1,6 @@
+node_modules
+dist
+.cert
+ref-repo
+*.tsbuildinfo
+.DS_Store
