@@ -64,12 +64,12 @@ public class HeatmapWidgetProvider extends AppWidgetProvider {
         long monthExpense = sp.getLong("monthExpense", 0);
         long monthBudget = sp.getLong("monthBudget", 0);
         views.setTextViewText(
+            R.id.heat_today,
+            context.getString(R.string.heat_today, MoneyWidgetProvider.money(todayExpense))
+        );
+        views.setTextViewText(
             R.id.heat_spent,
-            context.getString(
-                R.string.heat_spent,
-                MoneyWidgetProvider.money(todayExpense),
-                MoneyWidgetProvider.money(monthExpense)
-            )
+            context.getString(R.string.heat_spent, MoneyWidgetProvider.money(monthExpense))
         );
         if (monthBudget > 0) {
             long left = monthBudget - monthExpense;
