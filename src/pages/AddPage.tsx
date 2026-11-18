@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dayjs from 'dayjs'
 import { db } from '../db'
 import { useApp } from '../lib/store'
+import { useDragReorder } from '../lib/dragReorder'
 import { formatDateLabel, money, moneySigned, nowTime, parseAmount, todayStr, uid } from '../lib/format'
 import Sheet from '../components/Sheet'
 import CategoryEditor from '../components/CategoryEditor'
@@ -40,12 +41,16 @@ export default function AddPage({
   const [note, setNote] = useState('')
   const [sheet, setSheet] = useState<'account' | 'toAccount' | 'date' | 'note' | null>(null)
   const [catEditor, setCatEditor] = useState<Category | 'new' | null>(null)
+  // 整理模式：长按分类进入，进去后能拖动排序、点 × 删除
+  const [catMode, setCatMode] = useState(false)
+  const [deleting, setDeleting] = useState<{ cat: Category; count: number } | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
   const [loaded, setLoaded] = useState(!editId)
   const [saving, setSaving] = useState(false)
 
   const originalRef = useRef<Transaction | null>(null)
   const holdRef = useRef<number>(0)
+  const holdFiredRef = useRef(0)
 
   const expenseCats = useMemo(
     () => categories.filter((c) => c.type === 'expense' && !c.archived),
@@ -168,6 +173,55 @@ export default function AddPage({
   const acc = accMap.get(accountId)
   const toAcc = accMap.get(toAccountId)
 
+  /** 取消「长按进入整理模式」的计时器 */
+  const clearHold = () => {
+    if (holdRef.current) {
+      window.clearTimeout(holdRef.current)
+      holdRef.current = 0
+    }
+  }
+
+  const catIds = useMemo(() => catList.map((c) => c.id), [catList])
+  // 松手时把新顺序按 1..n 写回，两次 update 之间不留空档，所以包一个事务
+  const commitCatOrder = useCallback(async (ids: string[]) => {
+    await db.transaction('rw', db.categories, async () => {
+      for (let i = 0; i < ids.length; i += 1) {
+        await db.categories.update(ids[i], { order: i + 1 })
+      }
+    })
+  }, [])
+  const { order: catOrder, dragId, onPointerDown, wasDragging } = useDragReorder({
+    ids: catIds,
+    onCommit: commitCatOrder,
+  })
+  const orderedCats = useMemo(() => {
+    const byId = new Map(catList.map((c) => [c.id, c]))
+    const arr: Category[] = []
+    catOrder.forEach((id) => {
+      const c = byId.get(id)
+      if (c) {
+        arr.push(c)
+        byId.delete(id)
+      }
+    })
+    // 刚建好、还没进拖动快照的新分类补在末尾
+    byId.forEach((c) => arr.push(c))
+    return arr
+  }, [catList, catOrder])
+
+  const askDeleteCat = async (c: Category) => {
+    const n = await db.transactions.where('categoryId').equals(c.id).count()
+    setDeleting({ cat: c, count: n })
+  }
+  const confirmDeleteCat = async () => {
+    if (!deleting) return
+    const { cat } = deleting
+    await db.categories.delete(cat.id)
+    if (categoryId === cat.id) setCategoryId('')
+    setDeleting(null)
+    toast('已删除分类')
+  }
+
   // 长按删除更安全，这里用弹 sheet 确认
   const [confirmDel, setConfirmDel] = useState(false)
 
@@ -189,6 +243,7 @@ export default function AddPage({
               onClick={() => {
                 setMode(m)
                 setCategoryId('')
+                setCatMode(false)
               }}
             >
               {m === 'expense' ? '支出' : m === 'income' ? '收入' : '转账'}
@@ -282,60 +337,82 @@ export default function AddPage({
           </div>
         </div>
       ) : (
-        <div className="cat-grid">
-          {catList.map((c) => {
-            const sel = c.id === categoryId
-            return (
-              <button
-                key={c.id}
-                className={'cat-cell' + (sel ? ' sel' : '')}
-                style={{
-                  ['--cat-color' as string]: c.color,
-                  ['--tint' as string]: c.color + '1f',
-                }}
-                onClick={() => setCategoryId(c.id)}
-                onPointerDown={() => {
-                  // 长按分类进入编辑，可以改名、换图标或删掉
-                  holdRef.current = window.setTimeout(() => {
-                    holdRef.current = 0
-                    setCatEditor(c)
-                  }, 500)
-                }}
-                onPointerUp={() => {
-                  if (holdRef.current) {
-                    clearTimeout(holdRef.current)
-                    holdRef.current = 0
-                  }
-                }}
-                onPointerLeave={() => {
-                  if (holdRef.current) {
-                    clearTimeout(holdRef.current)
-                    holdRef.current = 0
-                  }
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault()
-                  setCatEditor(c)
-                }}
-              >
-                <span
-                  className="box"
-                  style={sel ? { background: c.color } : undefined}
-                >
-                  {c.icon}
-                </span>
-                <span className="nm">{c.name}</span>
+        <div className={'cat-grid' + (catMode ? ' editing' : '')}>
+          {catMode && (
+            <div className="cat-edit-bar">
+              <span>按住分类拖动排序，点 × 删除</span>
+              <button className="btn btn-sm btn-ghost" onClick={() => setCatMode(false)}>
+                完成
               </button>
+            </div>
+          )}
+          {orderedCats.map((c) => {
+            const sel = c.id === categoryId && !catMode
+            return (
+              <div className="cat-slot" key={c.id} data-drag-id={c.id}>
+                <button
+                  className={'cat-cell' + (sel ? ' sel' : '') + (dragId === c.id ? ' dragging' : '')}
+                  style={{
+                    ['--cat-color' as string]: c.color,
+                    ['--tint' as string]: c.color + '1f',
+                  }}
+                  onPointerDown={(e) => {
+                    if (catMode) {
+                      onPointerDown(c.id, e)
+                      return
+                    }
+                    // 长按进入整理模式：拖动排序、点 × 删除都在里面
+                    holdRef.current = window.setTimeout(() => {
+                      holdRef.current = 0
+                      holdFiredRef.current = Date.now()
+                      setCatMode(true)
+                      navigator.vibrate?.(12)
+                    }, 450)
+                  }}
+                  onPointerUp={clearHold}
+                  onPointerLeave={clearHold}
+                  onClick={() => {
+                    // 长按 / 拖动松手后浏览器还会补一个 click，别让它顺手选中或打开编辑
+                    if (Date.now() - holdFiredRef.current < 600) return
+                    if (wasDragging()) return
+                    if (catMode) {
+                      setCatEditor(c)
+                      return
+                    }
+                    setCategoryId(c.id)
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    setCatMode(true)
+                  }}
+                >
+                  <span className="box" style={sel ? { background: c.color } : undefined}>
+                    {c.icon}
+                  </span>
+                  <span className="nm">{c.name}</span>
+                </button>
+                {catMode && (
+                  <button
+                    className="cat-x"
+                    onClick={() => askDeleteCat(c)}
+                    aria-label={`删除 ${c.name}`}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             )
           })}
-          <button
-            className="cat-cell add"
-            onClick={() => setCatEditor('new')}
-            aria-label="新建分类"
-          >
-            <span className="box">＋</span>
-            <span className="nm">添加</span>
-          </button>
+          {!catMode && (
+            <button
+              className="cat-cell add"
+              onClick={() => setCatEditor('new')}
+              aria-label="新建分类"
+            >
+              <span className="box">＋</span>
+              <span className="nm">添加</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -490,6 +567,24 @@ export default function AddPage({
           <div className="row" style={{ gap: 10 }}>
             <button className="btn btn-ghost btn-block" onClick={() => setConfirmDel(false)}>取消</button>
             <button className="btn btn-danger btn-block" onClick={remove}>
+              删除
+            </button>
+          </div>
+        </Sheet>
+      )}
+
+      {deleting && (
+        <Sheet title={`删除「${deleting.cat.name}」？`} onClose={() => setDeleting(null)}>
+          <p style={{ color: 'var(--text-2)', fontSize: 13.5, padding: '0 4px 14px', lineHeight: 1.65 }}>
+            {deleting.count > 0
+              ? `已有 ${deleting.count} 笔记账用了这个分类，删掉后这些记录会显示成「未分类」，金额和账户都还在。`
+              : '这个分类还没有记过账，删掉后不可恢复。'}
+          </p>
+          <div className="row" style={{ gap: 10 }}>
+            <button className="btn btn-ghost btn-block" onClick={() => setDeleting(null)}>
+              取消
+            </button>
+            <button className="btn btn-danger btn-block" onClick={confirmDeleteCat}>
               删除
             </button>
           </div>

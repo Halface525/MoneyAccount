@@ -2076,3 +2076,193 @@ textarea {
 .switch.on::after {
   transform: translateX(16px);
 }
+/* ---------- 分类编辑面板（简化版） ---------- */
+.ce-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ce-preview {
+  width: 46px;
+  height: 46px;
+  font-size: 21px;
+  flex: none;
+}
+
+.ce-name {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 15px;
+  color: var(--text);
+}
+
+.ce-name::placeholder {
+  color: var(--text-3);
+}
+
+/* 颜色只留 8 个，一排正好放下，不用横向滑 */
+.ce-colors {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 2px 2px;
+}
+
+.ce-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  flex: none;
+  border: 2.5px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.ce-dot.on {
+  border-color: var(--text);
+  transform: scale(1.08);
+}
+
+/* 6 列 × 4 行：23 个常用图标 + 一个自定义格子，一屏放得下，不用滚 */
+.ce-icons {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding-bottom: 2px;
+}
+
+.ce-icon {
+  aspect-ratio: 1;
+  border: 1.5px solid transparent;
+  border-radius: 11px;
+  background: var(--surface-3);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ce-custom {
+  border-style: dashed;
+  border-color: var(--line-strong, var(--line));
+  background: none;
+}
+
+.ce-custom input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.ce-hint {
+  font-size: 11.5px;
+  color: var(--text-3);
+  padding: 0;
+}
+
+/* 「更多图标」开关：默认收起，常用 23 个之外的不占地方 */
+.ce-more-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 2px 0;
+}
+
+.ce-more {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
+  padding: 2px 0;
+}
+
+/* ---------- 分类整理模式（记账页） ---------- */
+.cat-edit-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 6px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.cat-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.cat-slot > .cat-cell {
+  flex: 1;
+  width: 100%;
+}
+
+/* 整理模式下分类格子自己吃掉手势，不然拖到一半页面跟着滚 */
+.cat-grid.editing .cat-cell {
+  touch-action: none;
+}
+
+.cat-cell.dragging {
+  opacity: 0.5;
+  transform: scale(0.96);
+}
+
+.cat-cell.dragging .box {
+  box-shadow: 0 10px 20px -10px rgba(96, 66, 40, 0.7);
+}
+
+.cat-x {
+  position: absolute;
+  top: -2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--negative);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+/* ---------- 分类列表的拖动柄 ---------- */
+.drag-handle {
+  color: var(--text-3);
+  padding: 6px;
+  border-radius: 8px;
+  touch-action: none;
+  flex: none;
+}
+
+.drag-handle:active {
+  background: var(--surface-3);
+}
+
+.list-row.dragging {
+  opacity: 0.5;
+  background: var(--surface-3);
+}
+
+/* 长按分类是为了进整理模式，不能被 WebView 当成选文字 */
+.cat-grid,
+.cat-edit-bar,
+.cat-cell,
+.cat-slot {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

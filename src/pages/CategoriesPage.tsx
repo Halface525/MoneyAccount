@@ -1,26 +1,59 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
+import { useDragReorder } from '../lib/dragReorder'
 import { IconChevronLeft, IconPlus } from '../components/Icons'
 import CategoryEditor from '../components/CategoryEditor'
 import type { Category } from '../db/types'
+
+/** 拖动柄：两列小圆点，只在这里按下才能排序，避免整行拖动时和页面滚动打架 */
+function GripIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+      <circle cx="6" cy="3" r="1.3" />
+      <circle cx="10" cy="3" r="1.3" />
+      <circle cx="6" cy="8" r="1.3" />
+      <circle cx="10" cy="8" r="1.3" />
+      <circle cx="6" cy="13" r="1.3" />
+      <circle cx="10" cy="13" r="1.3" />
+    </svg>
+  )
+}
 
 export default function CategoriesPage({ back }: { back: () => void }) {
   const { categories, toast } = useApp()
   const [tab, setTab] = useState<'expense' | 'income'>('expense')
   const [editing, setEditing] = useState<Category | 'new' | null>(null)
 
-  const list = categories.filter((c) => c.type === tab)
+  const list = useMemo(() => categories.filter((c) => c.type === tab), [categories, tab])
+  const ids = useMemo(() => list.map((c) => c.id), [list])
 
-  const move = async (c: Category, dir: -1 | 1) => {
-    const idx = list.findIndex((x) => x.id === c.id)
-    const target = list[idx + dir]
-    if (!target) return
+  const commitOrder = useCallback(async (order: string[]) => {
     await db.transaction('rw', db.categories, async () => {
-      await db.categories.update(c.id, { order: target.order })
-      await db.categories.update(target.id, { order: c.order })
+      for (let i = 0; i < order.length; i += 1) {
+        await db.categories.update(order[i], { order: i + 1 })
+      }
     })
-  }
+  }, [])
+
+  const { order, dragId, onPointerDown, wasDragging } = useDragReorder({
+    ids,
+    onCommit: commitOrder,
+  })
+
+  const ordered = useMemo(() => {
+    const byId = new Map(list.map((c) => [c.id, c]))
+    const arr: Category[] = []
+    order.forEach((id) => {
+      const c = byId.get(id)
+      if (c) {
+        arr.push(c)
+        byId.delete(id)
+      }
+    })
+    byId.forEach((c) => arr.push(c))
+    return arr
+  }, [list, order])
 
   return (
     <div className="page">
@@ -45,37 +78,37 @@ export default function CategoriesPage({ back }: { back: () => void }) {
         </button>
       </div>
 
+      <div className="small muted" style={{ padding: '0 6px 8px' }}>
+        拖动右侧的手柄可以调整顺序
+      </div>
+
       <div className="card" style={{ overflow: 'hidden' }}>
-        {list.map((c, i) => (
+        {ordered.map((c, i) => (
           <div
             key={c.id}
-            className="list-row"
+            className={'list-row' + (dragId === c.id ? ' dragging' : '')}
+            data-drag-id={c.id}
             style={{ borderTop: i === 0 ? 'none' : undefined, cursor: 'pointer' }}
-            onClick={() => setEditing(c)}
+            onClick={() => {
+              if (wasDragging()) return
+              setEditing(c)
+            }}
           >
-            <span
-              className="cat-icon"
-              style={{ background: c.color + '1f' }}
-            >
+            <span className="cat-icon" style={{ background: c.color + '1f' }}>
               {c.icon}
             </span>
             <span className="lbl">{c.name}</span>
-            <div className="row" style={{ gap: 2 }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); move(c, -1) }}
-                style={{ color: 'var(--text-3)', padding: 6 }}
-                aria-label="上移"
-              >
-                ↑
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); move(c, 1) }}
-                style={{ color: 'var(--text-3)', padding: 6 }}
-                aria-label="下移"
-              >
-                ↓
-              </button>
-            </div>
+            <button
+              className="drag-handle"
+              aria-label={`拖动 ${c.name} 排序`}
+              onPointerDown={(e) => {
+                e.stopPropagation()
+                onPointerDown(c.id, e)
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GripIcon />
+            </button>
           </div>
         ))}
       </div>
@@ -85,7 +118,10 @@ export default function CategoriesPage({ back }: { back: () => void }) {
           cat={editing === 'new' ? null : editing}
           type={tab}
           onClose={() => setEditing(null)}
-          onDone={(msg) => { toast(msg); setEditing(null) }}
+          onDone={(msg) => {
+            toast(msg)
+            setEditing(null)
+          }}
         />
       )}
     </div>
