@@ -8,7 +8,7 @@
 已经打包好一个签名的安装包，直接装到手机上：
 
 ```
-android/app/build/outputs/apk/release/随手记-1.0.0-release.apk
+release/suishouji-1.0.1.apk
 ```
 
 传到手机（微信/数据线/网盘）点开安装即可，需要在系统里允许「安装未知来源应用」。
