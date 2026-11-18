@@ -27,6 +27,32 @@
 
         </activity>
 
+        <!-- 桌面小组件：今日收支 + 本月预算，点「+」唤起记账页 -->
+        <receiver
+            android:name=".MoneyWidgetProvider"
+            android:label="@string/widget_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/money_widget_info" />
+        </receiver>
+
+        <!-- 宽版小组件：打卡热力图 + 快捷记账 -->
+        <receiver
+            android:name=".HeatmapWidgetProvider"
+            android:label="@string/heatmap_widget_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/heatmap_widget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

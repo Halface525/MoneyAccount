@@ -91,6 +91,10 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | --- | --- |
 | ![对话记账](docs/screenshots/10-chat.png) | ![AI 设置](docs/screenshots/11-ai.png) |
 
+| 桌面小组件（深色主题，2×2 今日 + 4×2 打卡） |
+| --- |
+| <img src="docs/screenshots/12-widgets.jpg" width="360" alt="桌面小组件"> |
+
 ## 功能
 
 | 模块 | 你能做什么 |
@@ -108,6 +112,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | 打卡热力图 | 近 19 周每天一格，按笔数或金额着深浅；点开看当天几笔花了多少，另有连续记账天数 |
 | 外观 | 跟随系统 / 浅色 / 深色 |
 | 数据文件 | 自动把账本写成手机里的 JSON 文件，按天留档，可回滚到任意一天 |
+| 桌面小组件 | 2×2 卡片显示今日支出与本月预算；4×2 卡片显示近 19 周打卡热力图、今日/本月支出与预算，点加号直接进记账页 |
 | 备份 | 导出 JSON 全量备份、导出 CSV 明细、从备份恢复、清空数据 |
 
 ## 设计上的取舍
@@ -117,6 +122,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 - **周期账单在启动时补记**，不依赖后台任务——WebView 壳里没法常驻后台。
 - **图表手写 SVG**，不引图表库，包体小、样式可控。
 - **无路由库**，一个 hash 路由 40 行搞定，刷新不 404。
+- **桌面小组件不碰账本文件**：组件进程读不到 WebView 的 IndexedDB，也不该去解析整份 JSON。Web 层每次数据变化把几个数字写进 SharedPreferences，原生只负责渲染，金额依旧是「分」。热力图在原生侧直接画成 Bitmap，不往 RemoteViews 里塞上百个格子 View。
 
 ## 视觉设计
 
@@ -137,8 +143,10 @@ src/
   lib/        format.ts 金额日期格式化 · store.tsx 全局数据与主题 · router.tsx hash 路由 · recurring.ts 周期账单补记
               nlp.ts 本地中文记账解析（金额/分类/账户/日期/多笔，纯规则、不联网）
               ai.ts 可选的 DeepSeek 解析（自己填 Key 才启用，失败自动退回本地规则）
-              native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链
+              native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链、组件深链
               update.ts 检查更新（只读远端 package.json 的版本号）
+              heatmap.ts 打卡热力图计算（统计页与桌面组件共用）
+              widget.ts 桌面小组件快照：算好今日收支与预算，交给原生插件
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
               Heatmap 打卡热力图 · CategoryEditor 分类编辑面板（记账页与分类页共用）
   pages/      HomePage 首页 · ChatPage 对话记账 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
@@ -148,6 +156,8 @@ src/
 scripts/
   sync-version.mjs 把 package.json 的 version 同步到 android/app/build.gradle
 android/      Capacitor 生成的安卓工程（图标、启动图、签名配置都在这里）
+              app/src/main/java/…/MoneyWidgetProvider.java 2×2 今日组件 · HeatmapWidgetProvider.java 4×2 打卡组件
+              app/src/main/java/…/WidgetPlugin.java 快照桥（写 SharedPreferences 并刷新组件）
 ```
 
 ## 技术栈

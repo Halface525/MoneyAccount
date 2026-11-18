@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 桌面格子经常不是正方形，原生侧会把这个卡片按短边压成正方形并居中 -->
+    <LinearLayout
+        android:id="@+id/widget_card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="14dp"
+        android:background="@drawable/widget_bg_dark">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/widget_date"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="今天"
+                android:textColor="#B3A48F"
+                android:textSize="10sp"
+                android:includeFontPadding="false" />
+
+            <ImageView
+                android:id="@+id/widget_add"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/widget_plus_bg"
+                android:padding="8dp"
+                android:src="@drawable/ic_widget_add"
+                android:contentDescription="记一笔"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="今日支出"
+                android:textColor="#B3A48F"
+                android:textSize="10sp"
+                android:includeFontPadding="false" />
+
+            <TextView
+                android:id="@+id/today_expense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="¥0.00"
+                android:textColor="#F7EFE2"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:fontFeatureSettings="tnum"
+                android:includeFontPadding="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="本月预算"
+                    android:textColor="#B3A48F"
+                    android:textSize="10sp"
+                    android:includeFontPadding="false" />
+
+                <TextView
+                    android:id="@+id/budget_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="未设置"
+                    android:textColor="#B3A48F"
+                    android:textSize="10sp"
+                    android:fontFeatureSettings="tnum"
+                    android:includeFontPadding="false" />
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/budget_progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_marginTop="6dp"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/widget_progress_dark" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useHashRoute, parseRoute } from './lib/router'
-import { initNative, registerBackButton, syncStatusBar } from './lib/native'
+import { initNative, onQuickAddRequest, registerBackButton, syncStatusBar } from './lib/native'
 import { useApp } from './lib/store'
 import TabBar from './components/TabBar'
 import HomePage from './pages/HomePage'
@@ -51,6 +51,19 @@ export default function App() {
       return true
     })
   }, [page, back])
+
+  // 原生：桌面小组件的「+」/快捷分类 → 直接进记账页并预选分类或收支类型
+  useEffect(
+    () =>
+      onQuickAddRequest(({ cat, type }) => {
+        const query = new URLSearchParams()
+        if (cat) query.set('cat', cat)
+        if (type) query.set('type', type)
+        const qs = query.toString()
+        navigate(`/add${qs ? `?${qs}` : ''}`)
+      }),
+    [navigate],
+  )
 
   const showTab = TABS.includes(page)
 

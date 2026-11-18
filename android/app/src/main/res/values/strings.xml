@@ -4,4 +4,20 @@
     <string name="title_activity_main">随手记</string>
     <string name="package_name">com.nimingzhe.moneyaccount</string>
     <string name="custom_url_scheme">com.nimingzhe.moneyaccount</string>
+    <string name="widget_label">随手记 · 今日</string>
+    <string name="widget_description">今日支出与本月预算，点加号直接记一笔</string>
+    <string name="widget_date_pattern">M月d日 EEEE</string>
+    <string name="widget_budget_left">剩余 %1$s</string>
+    <string name="widget_budget_over">超支 %1$s</string>
+    <string name="widget_budget_unset">未设置</string>
+    <string name="heatmap_widget_label">随手记 · 打卡</string>
+    <string name="heatmap_widget_description">记账打卡热力图，点加号直接记一笔</string>
+    <string name="heat_title">记账打卡</string>
+    <string name="heat_streak">连续 %1$d 天</string>
+    <string name="heat_streak_none">今天还没记</string>
+    <string name="quick_add">记一笔</string>
+    <string name="heat_spent">今日 %1$s · 本月 %2$s</string>
+    <string name="heat_left">剩余 %1$s</string>
+    <string name="heat_over">超支 %1$s</string>
+    <string name="heat_no_budget">未设预算</string>
 </resources>
