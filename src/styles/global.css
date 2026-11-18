@@ -649,6 +649,49 @@ textarea {
   background: var(--surface-3);
 }
 
+/* 明细页左滑删除 */
+.tx-swipe {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  touch-action: pan-y;
+}
+
+.tx-swipe .tx-row {
+  background: var(--surface);
+}
+
+.tx-swipe .tx-row:active {
+  background: var(--surface-3);
+}
+
+.tx-swipe + .tx-swipe .tx-row::before {
+  content: '';
+  position: absolute;
+  left: 57px;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--line);
+}
+
+.tx-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 76px;
+  background: var(--negative);
+}
+
+.tx-delete {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
 .cat-icon {
   width: 34px;
   height: 34px;
@@ -1135,52 +1178,6 @@ textarea {
 .key.accent:disabled {
   opacity: 0.5;
   box-shadow: none;
-}
-
-/* ---------- 保存成功反馈 ---------- */
-.save-success {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  background: rgba(12, 10, 8, 0.18);
-  backdrop-filter: blur(2px);
-  animation: fade-in 0.16s ease-out;
-}
-
-.save-check {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(148deg, #f7c46b 0%, #e79a3f 55%, #d0792a 100%);
-  color: #3a2410;
-  box-shadow: 0 18px 40px -18px rgba(208, 121, 42, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  animation: check-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.save-text {
-  font-size: 13px;
-  color: var(--text-2);
-}
-
-@keyframes check-pop {
-  0% {
-    transform: scale(0.55);
-    opacity: 0;
-  }
-  65% {
-    transform: scale(1.06);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-  }
 }
 
 /* ---------- Sheet ---------- */

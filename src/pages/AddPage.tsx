@@ -45,7 +45,6 @@ export default function AddPage({
   const [noteDraft, setNoteDraft] = useState('')
   const [loaded, setLoaded] = useState(!editId)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
 
   const originalRef = useRef<Transaction | null>(null)
   const holdRef = useRef<number>(0)
@@ -156,14 +155,9 @@ export default function AddPage({
       recurringId: orig?.recurringId,
     }
     await db.transactions.put(payload)
-    // 先给一个轻量的成功反馈，再回到上一页
-    setSaving(false)
-    setSaved(true)
     void lightTap()
-    window.setTimeout(() => {
-      toast(orig ? '已更新' : `已记账 ¥${money(amount)}`)
-      back()
-    }, 520)
+    toast(orig ? '已更新' : `已记账 ¥${money(amount)}`)
+    back()
   }
 
   const remove = async () => {
@@ -512,15 +506,6 @@ export default function AddPage({
             </button>
           </div>
         </Sheet>
-      )}
-
-      {saved && (
-        <div className="save-success" role="status" aria-live="polite">
-          <span className="save-check">
-            <IconCheck size={34} strokeWidth={2.4} />
-          </span>
-          <span className="save-text">{editId ? '已更新' : '已记账'}</span>
-        </div>
       )}
 
       {!loaded && <div className="toast">加载中…</div>}

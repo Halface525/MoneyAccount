@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
+import { db } from '../db'
 import { useApp } from '../lib/store'
 import { formatDateLabel, formatMonth, money, weekdayLabel } from '../lib/format'
 import TransactionRow from '../components/TransactionRow'
@@ -20,7 +21,7 @@ export default function TransactionsPage({
 }: {
   navigate: (to: string) => void
 }) {
-  const { transactions, categories, accounts, catMap } = useApp()
+  const { transactions, categories, accounts, catMap, toast } = useApp()
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'))
   const [filter, setFilter] = useState<Filter>('all')
   const [q, setQ] = useState('')
@@ -30,6 +31,7 @@ export default function TransactionsPage({
   const [accFilter, setAccFilter] = useState<string | null>(null)
   const [minAmt, setMinAmt] = useState('')
   const [maxAmt, setMaxAmt] = useState('')
+  const [deleting, setDeleting] = useState<Transaction | null>(null)
 
   const isCurrent = month === dayjs().format('YYYY-MM')
 
@@ -222,6 +224,7 @@ export default function TransactionsPage({
                   key={t.id}
                   tx={t}
                   onClick={() => navigate(`/add?id=${t.id}`)}
+                  onDelete={() => setDeleting(t)}
                 />
               ))}
             </div>
@@ -311,6 +314,29 @@ export default function TransactionsPage({
           </button>
         </Sheet>
       )}
+      {deleting && (
+        <Sheet title="删除这笔记录？" onClose={() => setDeleting(null)}>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 4px 14px' }}>
+            删除后无法恢复；账本的历史留档里可能还有旧版本。
+          </p>
+          <div className="row" style={{ gap: 10 }}>
+            <button className="btn btn-ghost btn-block" onClick={() => setDeleting(null)}>
+              取消
+            </button>
+            <button
+              className="btn btn-danger btn-block"
+              onClick={async () => {
+                await db.transactions.delete(deleting.id)
+                toast('已删除')
+                setDeleting(null)
+              }}
+            >
+              删除
+            </button>
+          </div>
+        </Sheet>
+      )}
+
       {searching && <div style={{ display: 'none' }} onClick={() => setSearching(false)} />}
     </div>
   )
