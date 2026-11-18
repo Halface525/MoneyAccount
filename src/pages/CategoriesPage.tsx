@@ -3,6 +3,7 @@ import { db } from '../db'
 import { useApp } from '../lib/store'
 import { IconChevronLeft, IconPlus } from '../components/Icons'
 import CategoryEditor from '../components/CategoryEditor'
+import { AppIcon } from '../lib/appIcons'
 import type { Category } from '../db/types'
 
 export default function CategoriesPage({ back }: { back: () => void }) {
@@ -57,7 +58,7 @@ export default function CategoriesPage({ back }: { back: () => void }) {
               className="cat-icon"
               style={{ background: c.color + '1f' }}
             >
-              {c.icon}
+              <AppIcon name={c.icon} size={18} color={c.color} />
             </span>
             <span className="lbl">{c.name}</span>
             <div className="row" style={{ gap: 2 }}>

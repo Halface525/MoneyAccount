@@ -121,6 +121,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 - **账户余额是算出来的**：`初始余额 + 收入 − 支出`，转账双边扣加。不做冗余余额字段，永远不会算错。
 - **周期账单在启动时补记**，不依赖后台任务——WebView 壳里没法常驻后台。
 - **图表手写 SVG**，不引图表库，包体小、样式可控。
+- **图标统一用 Lucide 线性图标**（ISC 许可），分类/账户图标在库里存图标 key；旧账本里的默认 emoji 会在启动时自动迁移，用户自己改过的 emoji 原样保留。
 - **无路由库**，一个 hash 路由 40 行搞定，刷新不 404。
 - **桌面小组件不碰账本文件**：组件进程读不到 WebView 的 IndexedDB，也不该去解析整份 JSON。Web 层每次数据变化把几个数字写进 SharedPreferences，原生只负责渲染，金额依旧是「分」。热力图在原生侧直接画成 Bitmap，不往 RemoteViews 里塞上百个格子 View。
 
@@ -147,6 +148,7 @@ src/
               update.ts 检查更新（只读远端 package.json 的版本号）
               heatmap.ts 打卡热力图计算（统计页与桌面组件共用）
               widget.ts 桌面小组件快照：算好今日收支与预算，交给原生插件
+              appIcons.tsx Lucide 图标映射与统一的 AppIcon 渲染组件
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
               Heatmap 打卡热力图 · CategoryEditor 分类编辑面板（记账页与分类页共用）
   pages/      HomePage 首页 · ChatPage 对话记账 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
@@ -162,7 +164,7 @@ android/      Capacitor 生成的安卓工程（图标、启动图、签名配�
 
 ## 技术栈
 
-React 19 · TypeScript · Vite · Dexie（内存库）· dayjs · Capacitor 6（打包安卓）
+React 19 · TypeScript · Vite · Dexie（内存库）· dayjs · Lucide（图标）· Capacitor 6（打包安卓）
 可选：DeepSeek API（`deepseek-flash`，即 V4.1-Flash），不填 Key 完全不联网
 
 ## 对话记账

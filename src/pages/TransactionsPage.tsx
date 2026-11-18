@@ -10,6 +10,7 @@ import {
   IconClose,
   IconSearch,
 } from '../components/Icons'
+import { AppIcon } from '../lib/appIcons'
 import type { Transaction, TxType } from '../db/types'
 
 type Filter = 'all' | TxType
@@ -150,7 +151,12 @@ export default function TransactionsPage({
         <div className="row small" style={{ padding: '0 2px 8px', gap: 8, flexWrap: 'wrap' }}>
           {catFilter && (
             <button className="chip" onClick={() => setCatFilter(null)}>
-              {catMap.get(catFilter)?.icon} {catMap.get(catFilter)?.name}
+              <AppIcon
+                name={catMap.get(catFilter)?.icon ?? 'package'}
+                size={13}
+                color={catMap.get(catFilter)?.color}
+              />
+              {catMap.get(catFilter)?.name}
               <IconClose size={11} />
             </button>
           )}
@@ -190,7 +196,9 @@ export default function TransactionsPage({
 
       {groups.length === 0 ? (
         <div className="card empty">
-          <span className="em">🔍</span>
+          <span className="em">
+            <AppIcon name="search" size={30} />
+          </span>
           <div className="t">没有符合条件的记录</div>
           <div className="s">试试换个月份或清除筛选</div>
         </div>
@@ -239,7 +247,8 @@ export default function TransactionsPage({
                 className={'pill' + (catFilter === c.id ? ' active' : '')}
                 onClick={() => setCatFilter(catFilter === c.id ? null : c.id)}
               >
-                {c.icon} {c.name}
+                <AppIcon name={c.icon} size={14} color={c.color} />
+                {c.name}
               </button>
             ))}
           </div>
@@ -288,7 +297,8 @@ export default function TransactionsPage({
                 className={'pill' + (accFilter === a.id ? ' active' : '')}
                 onClick={() => setAccFilter(accFilter === a.id ? null : a.id)}
               >
-                {a.icon} {a.name}
+                <AppIcon name={a.icon} size={14} color={a.color} />
+                {a.name}
               </button>
             ))}
           </div>

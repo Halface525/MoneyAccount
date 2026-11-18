@@ -4,13 +4,9 @@ import { useApp } from '../lib/store'
 import { uid } from '../lib/format'
 import Sheet from './Sheet'
 import { IconTrash } from './Icons'
+import { AppIcon } from '../lib/appIcons'
+import { PICKER_ICON_KEYS } from '../db/iconKeys'
 import type { Category } from '../db/types'
-
-export const CATEGORY_ICONS = [
-  '🍜','🍚','☕️','🍰','🥤','🍺','🛒','🛍️','👕','👟','🧴','💄','💊','🏥','🚇','🚌','🚕','⛽️','🚲','✈️',
-  '🏠','💡','💧','📱','🌐','🎮','🎬','🎵','📚','✏️','🏀','🏃','🐱','🐶','🎁','🧧','💰','📈','💼','🧾',
-  '📦','🔧','🪙','💳','🏦','🎓','👶','💍','🧳','🥗','🐟','🌸','🎂','🧸','🎸','⚽️','🚗','🧺','🫐','🍇',
-]
 
 export const CATEGORY_COLORS = [
   '#E8825A','#DFA84F','#C4715F','#D9708F','#C287B4','#9C86C9','#7A86C9',
@@ -30,7 +26,7 @@ export default function CategoryEditor({
 }) {
   const { categories, toast } = useApp()
   const [name, setName] = useState(cat?.name ?? '')
-  const [icon, setIcon] = useState(cat?.icon ?? '📦')
+  const [icon, setIcon] = useState(cat?.icon ?? 'package')
   const [color, setColor] = useState(cat?.color ?? '#D99A3D')
   const [confirmDel, setConfirmDel] = useState(false)
   const [usedCount, setUsedCount] = useState(0)
@@ -48,9 +44,6 @@ export default function CategoryEditor({
     setUsedCount(n)
     setConfirmDel(true)
   }
-  const [customIcon, setCustomIcon] = useState('')
-  const customActive = !!customIcon && customIcon === icon
-
   const save = async () => {
     if (!name.trim()) return toast('请输入名称')
     const sameType = categories.filter((c) => c.type === type)
@@ -108,57 +101,24 @@ export default function CategoryEditor({
       <div className="section-head" style={{ padding: '14px 2px 6px' }}>
         <h2>图标</h2>
       </div>
-      <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-        {CATEGORY_ICONS.map((ic, i) => (
+      <div className="icon-grid">
+        {PICKER_ICON_KEYS.map((k) => (
           <button
-            key={ic + i}
-            onClick={() => setIcon(ic)}
+            key={k}
+            className={'icon-pick' + (icon === k ? ' active' : '')}
+            onClick={() => setIcon(k)}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 11,
-              fontSize: 18,
-              background: icon === ic ? color + '2a' : 'var(--surface-3)',
-              border: icon === ic ? `1.5px solid ${color}` : '1.5px solid transparent',
+              background: icon === k ? color + '2a' : 'var(--surface-3)',
+              borderColor: icon === k ? color : 'transparent',
             }}
+            aria-label={k}
           >
-            {ic}
+            <AppIcon name={k} size={19} color={icon === k ? color : 'var(--text-2)'} />
           </button>
         ))}
       </div>
-
-      {/* 自定义图标：上面没有想要的，直接输入任意 emoji */}
-      <div className="row" style={{ gap: 8, marginTop: 10, alignItems: 'center' }}>
-        <div className="field" style={{ flex: 1, marginBottom: 0 }}>
-          <span className="lbl">自定义</span>
-          <input
-            value={customIcon}
-            onChange={(e) => {
-              // 只留第一个字形：emoji 有组合字符，得按字形切而不是按码点
-              const next = firstGlyph(e.target.value)
-              setCustomIcon(next)
-              if (next) setIcon(next)
-            }}
-            placeholder="输入任意 emoji，如 🫐"
-            maxLength={4}
-          />
-        </div>
-        <div
-          className="cat-icon"
-          style={{
-            width: 44,
-            height: 44,
-            fontSize: 20,
-            background: color + '1f',
-            border: customActive ? `1.5px solid ${color}` : '1.5px solid transparent',
-            flex: 'none',
-          }}
-        >
-          {icon}
-        </div>
-      </div>
-      <div className="small muted" style={{ padding: '6px 2px 0', lineHeight: 1.6 }}>
-        手机键盘里点一下表情就能填进来，也可以从别处复制粘贴。
+      <div className="small muted" style={{ padding: '8px 2px 0', lineHeight: 1.6 }}>
+        图标来自 Lucide，和底部导航、设置页是同一套线条风格。
       </div>
 
       <button className="btn btn-primary btn-block" style={{ marginTop: 14 }} onClick={save}>
@@ -202,17 +162,4 @@ export default function CategoryEditor({
       <div style={{ height: 8 }} />
     </Sheet>
   )
-}
-
-/** 取字符串的第一个「字形」（兼容带修饰符、ZWJ 组合的 emoji） */
-function firstGlyph(input: string): string {
-  const text = input.replace(/\s/g, '')
-  if (!text) return ''
-  const Seg = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter }).Segmenter
-  if (Seg) {
-    const it = new Seg('zh', { granularity: 'grapheme' }).segment(text)[Symbol.iterator]()
-    const first = it.next()
-    return first.done ? '' : first.value.segment
-  }
-  return Array.from(text)[0] ?? ''
 }

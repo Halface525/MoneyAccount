@@ -11,6 +11,7 @@ import {
   IconTransfer,
   IconTrash,
 } from '../components/Icons'
+import { AppIcon } from '../lib/appIcons'
 import type { Category, Transaction, TxType } from '../db/types'
 
 type Mode = TxType
@@ -217,7 +218,9 @@ export default function AddPage({
 
       <div className="add-meta">
         <button className="chip strong" onClick={() => setSheet('account')}>
-          <span className="em">{acc?.icon ?? '💳'}</span>
+          <span className="em">
+            <AppIcon name={acc?.icon ?? 'credit-card'} size={15} color={acc?.color} />
+          </span>
           {acc?.name ?? '选择账户'}
         </button>
         {mode === 'transfer' && (
@@ -226,7 +229,9 @@ export default function AddPage({
               →
             </span>
             <button className="chip strong" onClick={() => setSheet('toAccount')}>
-              <span className="em">{toAcc?.icon ?? '💳'}</span>
+              <span className="em">
+                <AppIcon name={toAcc?.icon ?? 'credit-card'} size={15} color={toAcc?.color} />
+              </span>
               {toAcc?.name ?? '转入账户'}
             </button>
           </>
@@ -236,7 +241,8 @@ export default function AddPage({
           {formatDateLabel(date)}
         </button>
         <button className="chip" onClick={() => { setNoteDraft(note); setSheet('note') }}>
-          {note ? '📝 ' + note : '+ 备注'}
+          <AppIcon name="notebook-pen" size={13} />
+          {note ? ' ' + note : ' 备注'}
         </button>
       </div>
 
@@ -249,9 +255,9 @@ export default function AddPage({
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div
                 className="cat-icon"
-                style={{ margin: '0 auto 6px', width: 42, height: 42, fontSize: 19, background: (acc?.color ?? '#999') + '1f' }}
+                style={{ margin: '0 auto 6px', width: 42, height: 42, background: (acc?.color ?? '#999') + '1f' }}
               >
-                {acc?.icon}
+                <AppIcon name={acc?.icon ?? 'credit-card'} size={20} color={acc?.color} />
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{acc?.name}</div>
               <div className="small muted">
@@ -264,9 +270,9 @@ export default function AddPage({
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div
                 className="cat-icon"
-                style={{ margin: '0 auto 6px', width: 42, height: 42, fontSize: 19, background: (toAcc?.color ?? '#999') + '1f' }}
+                style={{ margin: '0 auto 6px', width: 42, height: 42, background: (toAcc?.color ?? '#999') + '1f' }}
               >
-                {toAcc?.icon}
+                <AppIcon name={toAcc?.icon ?? 'credit-card'} size={20} color={toAcc?.color} />
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{toAcc?.name}</div>
               <div className="small muted">
@@ -322,7 +328,7 @@ export default function AddPage({
                   className="box"
                   style={sel ? { background: c.color } : undefined}
                 >
-                  {c.icon}
+                  <AppIcon name={c.icon} size={20} color={sel ? '#fff' : c.color} />
                 </span>
                 <span className="nm">{c.name}</span>
               </button>
@@ -380,7 +386,9 @@ export default function AddPage({
                 onClick={() => { setAccountId(a.id); setSheet(null) }}
                 style={a.id === accountId ? { borderColor: 'var(--accent)', background: 'var(--accent-soft)' } : undefined}
               >
-                <span className="cat-icon" style={{ background: a.color + '1f' }}>{a.icon}</span>
+                <span className="cat-icon" style={{ background: a.color + '1f' }}>
+                  <AppIcon name={a.icon} size={17} color={a.color} />
+                </span>
                 <span style={{ flex: 1, textAlign: 'left' }}>
                   <span className="nm">{a.name}</span>
                 </span>
@@ -404,7 +412,9 @@ export default function AddPage({
                 onClick={() => { setToAccountId(a.id); setSheet(null) }}
                 style={a.id === toAccountId ? { borderColor: 'var(--accent)', background: 'var(--accent-soft)' } : undefined}
               >
-                <span className="cat-icon" style={{ background: a.color + '1f' }}>{a.icon}</span>
+                <span className="cat-icon" style={{ background: a.color + '1f' }}>
+                  <AppIcon name={a.icon} size={17} color={a.color} />
+                </span>
                 <span style={{ flex: 1, textAlign: 'left' }}>
                   <span className="nm">{a.name}</span>
                 </span>
