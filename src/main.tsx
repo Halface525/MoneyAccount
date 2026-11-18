@@ -1,25 +1,40 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
 import './styles/global.css'
 import App from './App'
 import { AppProvider } from './lib/store'
 import { runRecurringCatchUp } from './lib/recurring'
-import { isNative } from './lib/native'
+import { installAutoSave, restoreFromFile, flushSave } from './lib/datafile'
 
-runRecurringCatchUp().catch(() => {})
+async function boot() {
+  // 1) 先把手机里的数据文件读回来。文件是真相，IndexedDB 只是缓存。
+  try {
+    await restoreFromFile()
+  } catch (err) {
+    console.warn('[boot] 读数据文件失败', err)
+  }
 
-// 只有网页 / PWA 才注册 Service Worker。
-// 原生 App 里 dist 是本地打包的资源，SW 反而会缓存住旧版本，导致升级 APK 后
-// 界面还是老的，所以原生端直接跳过（原生端本来也不依赖网络）。
-if (!isNative && 'serviceWorker' in navigator) {
-  registerSW({ immediate: true })
+  // 2) 挂上自动落盘，之后任何一处改数据都会写成文件
+  installAutoSave()
+
+  // 3) 退到后台 / 页面隐藏时立刻存一次，别等防抖
+  const save = () => { void flushSave() }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save()
+  })
+  window.addEventListener('pagehide', save)
+  window.addEventListener('beforeunload', save)
+
+  // 4) 周期账单补记（补记本身会触发自动保存）
+  await runRecurringCatchUp().catch(() => {})
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <AppProvider>
+        <App />
+      </AppProvider>
+    </StrictMode>,
+  )
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AppProvider>
-      <App />
-    </AppProvider>
-  </StrictMode>,
-)
+void boot()
