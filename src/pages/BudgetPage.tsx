@@ -81,6 +81,7 @@ export default function BudgetPage({ back }: { back: () => void }) {
   const dim = dayjs(month + '-01').daysInMonth()
   const passed = isCurrent ? dayjs().date() : dim
   const left = Math.max(0, totalBudget - totalExpense)
+  const overspent = totalBudget > 0 && totalExpense > totalBudget
   const perDayLeft = isCurrent ? Math.round(left / Math.max(1, dim - passed + 1)) : 0
 
   return (
@@ -119,27 +120,34 @@ export default function BudgetPage({ back }: { back: () => void }) {
           </button>
         </div>
         <div className="main">
-          <span className="big">
-            ¥{money(totalBudget > 0 ? Math.max(0, left) : 0, { decimals: false })}
+          <span className="big" style={overspent ? { color: 'var(--negative)' } : undefined}>
+            {totalBudget === 0
+              ? '—'
+              : overspent
+                ? `超支 ¥${money(totalExpense - totalBudget, { decimals: false })}`
+                : `¥${money(left, { decimals: false })}`}
           </span>
           <span className="small">
-            {totalBudget > 0 ? `/ ¥${money(totalBudget, { decimals: false })} 剩余` : '还没有设置预算'}
+            {totalBudget > 0
+              ? overspent
+                ? `预算 ¥${money(totalBudget, { decimals: false })} 已用完`
+                : `/ ¥${money(totalBudget, { decimals: false })} 剩余`
+              : '还没有设置预算'}
           </span>
         </div>
         <div className="progress">
           <div
             style={{
               width: `${totalBudget > 0 ? percent(totalExpense, totalBudget) : 0}%`,
-              background:
-                totalBudget > 0 && totalExpense > totalBudget
-                  ? 'linear-gradient(90deg,#f08a6d,#d4553f)'
-                  : 'linear-gradient(90deg,#f2c46b,#d8902c)',
+              background: overspent
+                ? 'linear-gradient(90deg, color-mix(in srgb, var(--negative) 70%, #f5b39c), var(--negative))'
+                : 'linear-gradient(90deg, color-mix(in srgb, var(--accent) 62%, #f7d9a8), var(--accent))',
             }}
           />
         </div>
         <div className="row" style={{ justifyContent: 'space-between', marginTop: 8, fontSize: 11.5, color: 'var(--text-3)' }}>
           <span>已花 ¥{money(totalExpense)}</span>
-          {totalBudget > 0 && isCurrent && (
+          {totalBudget > 0 && isCurrent && !overspent && (
             <span>日均可用 ¥{money(perDayLeft, { decimals: false })}</span>
           )}
         </div>

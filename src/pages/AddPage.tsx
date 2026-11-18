@@ -286,16 +286,15 @@ export default function AddPage({
               <button
                 key={c.id}
                 className={'cat-cell' + (sel ? ' sel' : '')}
-                style={{ ['--cat-color' as string]: c.color + '99' }}
+                style={{
+                  ['--cat-color' as string]: c.color,
+                  ['--tint' as string]: c.color + '1f',
+                }}
                 onClick={() => setCategoryId(c.id)}
               >
                 <span
                   className="box"
-                  style={{
-                    background: sel ? c.color : c.color + '1a',
-                    color: sel ? '#fff' : 'inherit',
-                    boxShadow: sel ? `0 8px 18px -8px ${c.color}` : 'none',
-                  }}
+                  style={sel ? { background: c.color } : undefined}
                 >
                   {c.icon}
                 </span>

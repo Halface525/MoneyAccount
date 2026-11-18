@@ -113,10 +113,10 @@ function CategoryEditor({
   const { categories, toast } = useApp()
   const [name, setName] = useState(cat?.name ?? '')
   const [icon, setIcon] = useState(cat?.icon ?? '📦')
-  const [color, setColor] = useState(cat?.color ?? '#E8A33D')
+  const [color, setColor] = useState(cat?.color ?? '#D99A3D')
   const [confirmDel, setConfirmDel] = useState(false)
 
-  const COLORS = ['#FF8A5B','#5B9BFF','#FF6FA5','#8B7CF6','#4FC3A1','#F2B84B','#56C0E0','#F5748B','#6C8CF5','#E8756B','#7FC24B','#9A938C']
+  const COLORS = ['#E8825A','#DFA84F','#C4715F','#D9708F','#C287B4','#9C86C9','#7A86C9','#6E92C4','#5FA8BC','#5E9BB5','#54A98C','#8AA85C','#B98A5C','#CE6E72','#A2968A']
 
   const save = async () => {
     if (!name.trim()) return toast('请输入名称')

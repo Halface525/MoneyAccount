@@ -23,6 +23,28 @@ export function moneySign(fen: number): string {
   return (fen < 0 ? '-' : '') + CURRENCY + money(fen)
 }
 
+/**
+ * 把金额切成整数和小数两段，方便把角分渲染得小一号。
+ * 1223500 -> { int: '12,235', dec: '.00' }
+ */
+export function splitMoney(fen: number): { int: string; dec: string } {
+  const s = money(fen)
+  const dot = s.lastIndexOf('.')
+  if (dot < 0) return { int: s, dec: '' }
+  return { int: s.slice(0, dot), dec: s.slice(dot) }
+}
+
+/** 按时间给一句问候，让首页更像「你的」而不是冷冰冰的仪表盘 */
+export function greeting(): string {
+  const h = dayjs().hour()
+  if (h < 6) return '夜深了'
+  if (h < 11) return '早上好'
+  if (h < 14) return '中午好'
+  if (h < 18) return '下午好'
+  if (h < 23) return '晚上好'
+  return '夜深了'
+}
+
 export function parseAmount(input: string): number {
   if (!input) return 0
   const n = Number(input)

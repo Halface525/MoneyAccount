@@ -189,11 +189,11 @@ function AccountEditor({
       return
     }
     const colorMap: Record<AccountKind, string> = {
-      cash: '#6FBF73',
-      ewallet: '#3EB575',
-      bank: '#D9A441',
-      credit: '#B06BD6',
-      other: '#8B7CF6',
+      cash: '#7FA85E',
+      ewallet: '#4E9E6B',
+      bank: '#C79A47',
+      credit: '#A77BBE',
+      other: '#9C86C9',
     }
     const payload: Account = {
       id: account?.id ?? uid('a_'),

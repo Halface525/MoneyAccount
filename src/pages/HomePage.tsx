@@ -4,8 +4,10 @@ import { useApp } from '../lib/store'
 import {
   formatDateLabel,
   formatMonth,
+  greeting,
   money,
   percent,
+  splitMoney,
   weekdayLabel,
 } from '../lib/format'
 import TransactionRow from '../components/TransactionRow'
@@ -61,6 +63,7 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
   const daysPassed = isCurrent ? dayjs().date() : dayjs(month + '-01').daysInMonth()
   const dailyAvg = Math.round(stats.expense / Math.max(1, daysPassed))
   const budgetLeft = totalBudget - stats.expense
+  const heroMoney = splitMoney(stats.expense)
 
   const shortcuts = [
     { em: '🍜', label: '餐饮', go: () => navigate('/add?cat=c_food') },
@@ -76,10 +79,10 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
     <div className="page">
       <header className="topbar">
         <div>
-          <h1>随手记</h1>
           <div className="sub">
-            {dayjs().format('M月D日')} {weekdayLabel(today)}
+            {greeting()} · {dayjs().format('M月D日')} {weekdayLabel(today)}
           </div>
+          <h1>随手记</h1>
         </div>
         <div className="month-switch">
           <button onClick={() => shiftMonth(-1)} aria-label="上个月">
@@ -103,7 +106,8 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
         </div>
         <div className="hero-balance">
           <span className="cur">¥</span>
-          {money(stats.expense)}
+          {heroMoney.int}
+          <span className="dec">{heroMoney.dec}</span>
         </div>
         <div className="hero-sub">
           共 {stats.count} 笔 · 日均 ¥{money(dailyAvg, { decimals: false })}
@@ -112,19 +116,19 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
         <div className="hero-strip">
           <div className="hero-stat">
             <div className="k">
-              <span className="dot" style={{ background: '#4fbf87' }} />
+              <span className="dot" style={{ background: 'var(--positive)' }} />
               收入
             </div>
             <div className="v">¥{money(stats.income)}</div>
           </div>
           <div className="hero-stat">
             <div className="k">
-              <span className="dot" style={{ background: '#f2b84b' }} />
+              <span className="dot" style={{ background: 'var(--accent)' }} />
               结余
             </div>
             <div
               className="v"
-              style={{ color: stats.balance >= 0 ? '#8fe0b4' : '#ff9d88' }}
+              style={{ color: stats.balance >= 0 ? 'var(--positive)' : 'var(--negative)' }}
             >
               {stats.balance < 0 ? '-' : ''}¥{money(Math.abs(stats.balance))}
             </div>

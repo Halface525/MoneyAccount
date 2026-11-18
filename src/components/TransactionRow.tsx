@@ -18,7 +18,7 @@ export default function TransactionRow({
   const toAcc = tx.toAccountId ? accMap.get(tx.toAccountId) : undefined
 
   const icon = tx.type === 'transfer' ? '🔄' : (cat?.icon ?? '📦')
-  const color = tx.type === 'transfer' ? '#8B7CF6' : (cat?.color ?? '#9A938C')
+  const color = tx.type === 'transfer' ? '#9C86C9' : (cat?.color ?? '#A2968A')
 
   let title: string
   if (tx.type === 'transfer') {

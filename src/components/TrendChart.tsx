@@ -51,12 +51,12 @@ export default function TrendChart({
       >
         <defs>
           <linearGradient id="gexp" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#e8a33d" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#e8a33d" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="ginc" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2f9e6b" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#2f9e6b" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--positive)" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="var(--positive)" stopOpacity="0" />
           </linearGradient>
         </defs>
         {[0.25, 0.5, 0.75, 1].map((g) => (
@@ -72,8 +72,8 @@ export default function TrendChart({
         ))}
         <path d={area('income')} fill="url(#ginc)" />
         <path d={area('expense')} fill="url(#gexp)" />
-        <path d={line('income')} fill="none" stroke="#2f9e6b" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
-        <path d={line('expense')} fill="none" stroke="#e8a33d" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />
+        <path d={line('income')} fill="none" stroke="var(--positive)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
+        <path d={line('expense')} fill="none" stroke="var(--accent)" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />
 
         {data.map((d, i) => (
           <g key={i}>
@@ -96,8 +96,8 @@ export default function TrendChart({
                   stroke="var(--line-strong)"
                   strokeDasharray="3 3"
                 />
-                <circle cx={xAt(i)} cy={yAt(d.expense)} r="3.6" fill="#e8a33d" stroke="var(--surface)" strokeWidth="1.6" />
-                <circle cx={xAt(i)} cy={yAt(d.income)} r="3.2" fill="#2f9e6b" stroke="var(--surface)" strokeWidth="1.4" />
+                <circle cx={xAt(i)} cy={yAt(d.expense)} r="3.6" fill="var(--accent)" stroke="var(--surface)" strokeWidth="1.6" />
+                <circle cx={xAt(i)} cy={yAt(d.income)} r="3.2" fill="var(--positive)" stroke="var(--surface)" strokeWidth="1.4" />
               </>
             )}
             {(data.length <= 7 || i % Math.ceil(data.length / 7) === 0) && (

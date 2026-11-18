@@ -131,11 +131,11 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
         </div>
         <div className="legend">
           <span>
-            <span className="dot" style={{ background: '#e8a33d' }} />
+            <span className="dot" style={{ background: 'var(--accent)' }} />
             支出 ¥{money(total.exp)}
           </span>
           <span>
-            <span className="dot" style={{ background: '#2f9e6b' }} />
+            <span className="dot" style={{ background: 'var(--positive)' }} />
             收入 ¥{money(total.inc)}
           </span>
         </div>
@@ -173,7 +173,10 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
                   flex: 1,
                   height: Math.max(2, (v / dailyMax) * 100) + '%',
                   borderRadius: 3,
-                  background: v > 0 ? 'linear-gradient(180deg,#f2c46b,#d8902c)' : 'var(--surface-3)',
+                  background:
+                    v > 0
+                      ? 'linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 72%, #7a3d12))'
+                      : 'var(--surface-3)',
                   opacity: v > 0 ? 1 : 0.5,
                   transition: 'height .4s',
                 }}
