@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -36,19 +39,28 @@ public class MoneyWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int id : appWidgetIds) {
-            appWidgetManager.updateAppWidget(id, buildViews(context));
+            appWidgetManager.updateAppWidget(id, buildViews(context, id));
         }
+    }
+
+    /** Resizing the widget changes the cell aspect, so refresh the square card */
+    @Override
+    public void onAppWidgetOptionsChanged(
+        Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions
+    ) {
+        appWidgetManager.updateAppWidget(appWidgetId, buildViews(context, appWidgetId));
     }
 
     /** Called by the plugin right after the snapshot changes */
     public static void updateAll(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, MoneyWidgetProvider.class));
-        if (ids.length == 0) return;
-        manager.updateAppWidget(ids, buildViews(context));
+        for (int id : ids) {
+            manager.updateAppWidget(id, buildViews(context, id));
+        }
     }
 
-    private static RemoteViews buildViews(Context context) {
+    private static RemoteViews buildViews(Context context, int widgetId) {
         SharedPreferences sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         boolean dark = "dark".equals(sp.getString("theme", "light"));
 
@@ -98,7 +110,7 @@ public class MoneyWidgetProvider extends AppWidgetProvider {
         PendingIntent homeIntent = PendingIntent.getActivity(
             context, 0, home, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        views.setOnClickPendingIntent(R.id.widget_root, homeIntent);
+        views.setOnClickPendingIntent(R.id.widget_card, homeIntent);
 
         // Plus button -> open the add page through the custom scheme handled in App.tsx
         Intent add = new Intent(Intent.ACTION_VIEW, Uri.parse("suishouji://add"), context, MainActivity.class);
@@ -107,6 +119,19 @@ public class MoneyWidgetProvider extends AppWidgetProvider {
             context, 1, add, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         views.setOnClickPendingIntent(R.id.widget_add, addIntent);
+
+        // 桌面的 2×2 格子通常不是正方形（行比列高）。把卡片按短边压成正方形并居中，
+        // 视觉上才是真正的 2×2 方块；API 31 以下没有 setViewLayout*，退回铺满。
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Bundle options = AppWidgetManager.getInstance(context).getAppWidgetOptions(widgetId);
+            int w = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+            int h = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0);
+            if (w > 0 && h > 0) {
+                int side = Math.min(w, h);
+                views.setViewLayoutWidth(R.id.widget_card, side, TypedValue.COMPLEX_UNIT_DIP);
+                views.setViewLayoutHeight(R.id.widget_card, side, TypedValue.COMPLEX_UNIT_DIP);
+            }
+        }
 
         return views;
     }
