@@ -10,13 +10,15 @@
     "serve": "node scripts/serve.mjs",
     "serve:https": "node scripts/serve.mjs --https",
     "typecheck": "tsc -b --noEmit",
-    "android:sync": "npm run build && npx cap sync android",
+    "android:sync": "node scripts/sync-version.mjs && npm run build && npx cap sync android",
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
-    "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease"
+    "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease",
+    "version": "node scripts/sync-version.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.3",
     "@capacitor/app": "^6.0.3",
+    "@capacitor/browser": "^6.0.6",
     "@capacitor/cli": "^6.2.3",
     "@capacitor/core": "^6.2.3",
     "@capacitor/filesystem": "^6.0.4",

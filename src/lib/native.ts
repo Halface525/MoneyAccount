@@ -56,6 +56,20 @@ function blobDownload(filename: string, data: string, mime: string) {
 }
 
 /**
+ * 在系统浏览器里打开外链。
+ * 原生 WebView 里 window.open / location.href 会把当前页面导航走，
+ * 或者被拦下来什么都不发生，所以统一走 Capacitor 的打开方式。
+ */
+export async function openExternal(url: string) {
+  if (isNative) {
+    const { Browser } = await import('@capacitor/browser')
+    await Browser.open({ url, presentationStyle: 'popover' })
+    return
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+/**
  * 导出文件。
  * 网页端走 a[download]；原生端 WebView 不支持下载，改为写入缓存目录后
  * 调系统分享面板，用户可以存到「文件」或发给自己。

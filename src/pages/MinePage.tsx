@@ -156,7 +156,7 @@ export default function MinePage({ navigate }: { navigate: (to: string) => void 
 
       <div className="row" style={{ justifyContent: 'center', marginTop: 24, gap: 6, color: 'var(--text-3)', fontSize: 11 }}>
         <IconTransfer size={12} />
-        随手记 v1.0 · 数据仅存于本机
+        随手记 v{__APP_VERSION__} · 数据仅存于本机
       </div>
     </div>
   )

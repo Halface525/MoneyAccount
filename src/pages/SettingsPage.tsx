@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
-import { saveTextFile } from '../lib/native'
+import { saveTextFile, openExternal } from '../lib/native'
+import { checkUpdate, RELEASES_URL } from '../lib/update'
 import Sheet from '../components/Sheet'
 import {
   IconChevronLeft,
@@ -34,6 +35,24 @@ export default function SettingsPage({
   const fileRef = useRef<HTMLInputElement>(null)
   const [confirmClear, setConfirmClear] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [update, setUpdate] = useState<null | { latest: string; hasUpdate: boolean }>(null)
+
+  const onCheckUpdate = async () => {
+    if (checking) return
+    setChecking(true)
+    const res = await checkUpdate(__APP_VERSION__)
+    setChecking(false)
+    if (!res.ok) {
+      toast(res.reason === 'network' ? '检查失败，请检查网络' : '版本信息格式异常')
+      return
+    }
+    if (res.hasUpdate) {
+      setUpdate({ latest: res.latest, hasUpdate: true })
+    } else {
+      toast('已经是最新版本')
+    }
+  }
 
   const exportJson = async () => {
     const data: Backup = {
@@ -226,10 +245,13 @@ export default function SettingsPage({
           <h2>关于</h2>
         </div>
         <div className="card" style={{ overflow: 'hidden' }}>
-          <div className="list-row">
+          <button className="list-row" onClick={onCheckUpdate} disabled={checking}>
             <span className="lbl">版本</span>
-            <span className="val">1.0.0</span>
-          </div>
+            <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
+              {checking ? '检查中…' : __APP_VERSION__}
+            </span>
+            <IconChevronRight size={16} className="chev" />
+          </button>
           <div className="list-row">
             <span className="lbl">数据存储</span>
             <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>本机 IndexedDB</span>
@@ -240,6 +262,28 @@ export default function SettingsPage({
           </div>
         </div>
       </section>
+
+      {update && (
+        <Sheet title="发现新版本" onClose={() => setUpdate(null)}>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 4px 16px', lineHeight: 1.7 }}>
+            当前 <b style={{ color: 'var(--text)' }}>v{__APP_VERSION__}</b>，
+            最新 <b style={{ color: 'var(--accent)' }}>v{update.latest}</b>。
+            <br />
+            新版需要下载安装包覆盖安装，记账数据会保留。
+          </p>
+          <div className="row" style={{ gap: 10 }}>
+            <button
+              className="btn btn-ghost btn-block"
+              onClick={() => { setUpdate(null); openExternal(RELEASES_URL) }}
+            >
+              打开下载页
+            </button>
+            <button className="btn btn-primary btn-block" onClick={() => setUpdate(null)}>
+              以后再说
+            </button>
+          </div>
+        </Sheet>
+      )}
 
       <div className="row" style={{ justifyContent: 'center', marginTop: 22 }}>
         <span className="small muted">记账 · 简单一点就好</span>

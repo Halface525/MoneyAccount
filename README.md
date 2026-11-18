@@ -31,6 +31,22 @@ npm run android:debug     # 调试包，可直接 adb install
 > `android/keystore.properties` 与密钥文件都已加入 `.gitignore`，不进版本库。
 > 换机重装记得带上这两个文件，否则无法覆盖升级已有安装。
 
+### 发新版本
+
+版本号只写一次，改 `package.json` 里的 `version` 就行：
+
+```bash
+npm version patch      # 1.0.0 → 1.0.1（也可以用 minor / major，或手动改）
+npm run android:release
+```
+
+`android:*` 脚本会先跑 `scripts/sync-version.mjs`，把 `version` 同步成安卓的
+`versionName`，并按 `major*10000 + minor*100 + patch` 算出单调递增的 `versionCode`
+（1.0.1 → 10001），否则安卓会拒绝覆盖安装。界面里显示的版本号也来自同一个值。
+
+App 里点「设置 → 关于 → 版本」可以检查更新：只请求一次仓库的 `package.json`
+比较版本号，**不上传任何记账数据**。发现有新版会给出仓库下载页入口。
+
 ## 网页 / PWA
 
 ```bash
@@ -96,14 +112,16 @@ npm run serve:https
 src/
   db/         types.ts 数据模型（金额单位：分） · seed.ts 预置分类/账户 · index.ts Dexie 打开与迁移
   lib/        format.ts 金额日期格式化 · store.tsx 全局数据与主题 · router.tsx hash 路由 · recurring.ts 周期账单补记
-              native.ts Capacitor 桥接：状态栏、返回键、文件导出
+              native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链
+              update.ts 检查更新（只读远端 package.json 的版本号）
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
   pages/      HomePage 首页 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
               BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
               CategoriesPage 分类 · MinePage 我的 · SettingsPage 设置
   styles/     global.css 全部样式（CSS 变量驱动的深浅色主题）
 scripts/
-  serve.mjs   本地静态服务器，--https 时自动生成自签证书
+  serve.mjs        本地静态服务器，--https 时自动生成自签证书
+  sync-version.mjs 把 package.json 的 version 同步到 android/app/build.gradle
 android/      Capacitor 生成的安卓工程（图标、启动图、签名配置都在这里）
 ```
 
