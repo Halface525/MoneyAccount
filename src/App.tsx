@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useHashRoute, parseRoute } from './lib/router'
+import { initNative, registerBackButton, syncStatusBar } from './lib/native'
+import { useApp } from './lib/store'
 import TabBar from './components/TabBar'
 import HomePage from './pages/HomePage'
 import TransactionsPage from './pages/TransactionsPage'
@@ -18,11 +20,35 @@ export default function App() {
   const { route, navigate, back } = useHashRoute()
   const { segs, params } = parseRoute(route)
   const page = segs[0] || 'home'
+  const { theme } = useApp()
 
   useEffect(() => {
     window.scrollTo(0, 0)
     document.body.style.overflow = page === 'add' ? 'hidden' : ''
   }, [route, page])
+
+  // 原生：初始化状态栏，并在主题切换时同步状态栏颜色
+  useEffect(() => {
+    initNative()
+  }, [])
+
+  useEffect(() => {
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    syncStatusBar(theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme)
+  }, [theme])
+
+  // 原生：安卓返回键 → 逐级后退，到首页再次按下才退出
+  useEffect(() => {
+    return registerBackButton(() => {
+      if (page === 'add') {
+        back()
+        return true
+      }
+      if (TABS.includes(page)) return false
+      back()
+      return true
+    })
+  }, [page, back])
 
   const showTab = TABS.includes(page)
 

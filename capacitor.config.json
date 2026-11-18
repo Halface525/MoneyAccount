@@ -1,0 +1,11 @@
+{
+  "appId": "com.nimingzhe.moneyaccount",
+  "appName": "随手记",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#12100E"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -4,3 +4,8 @@ dist
 ref-repo
 *.tsbuildinfo
 .DS_Store
+
+# Android 签名密钥：本地保留，不进版本库
+android/keystore.properties
+android/app/*.keystore
+android/app/*.jks

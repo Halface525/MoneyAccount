@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
+import { saveTextFile } from '../lib/native'
 import Sheet from '../components/Sheet'
 import {
   IconChevronLeft,
@@ -45,13 +46,11 @@ export default function SettingsPage({
       budgets: await db.budgets.toArray(),
       recurring: await db.recurring.toArray(),
     }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `随手记备份-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    await saveTextFile(
+      `随手记备份-${new Date().toISOString().slice(0, 10)}.json`,
+      JSON.stringify(data, null, 2),
+      'application/json',
+    )
     toast('已导出备份文件')
   }
 
@@ -70,13 +69,11 @@ export default function SettingsPage({
         return `${t.date},${t.time ?? ''},${type},${cm.get(t.categoryId) ?? ''},${(t.amount / 100).toFixed(2)},${am.get(t.accountId) ?? ''},${note}`
       })
       .join('\n')
-    const blob = new Blob(['\ufeff' + header + rows], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `随手记明细-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+    await saveTextFile(
+      `随手记明细-${new Date().toISOString().slice(0, 10)}.csv`,
+      '\ufeff' + header + rows,
+      'text/csv;charset=utf-8',
+    )
     toast('已导出 CSV')
   }
 

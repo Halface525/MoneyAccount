@@ -26,6 +26,9 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
+      // 注册交给 src/main.tsx 手动做：原生 App 里不注册 SW，否则升级 APK 后
+      // WebView 会一直拿到旧缓存
+      injectRegister: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         cleanupOutdatedCaches: true,

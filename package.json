@@ -9,9 +9,20 @@
     "preview": "vite preview --host",
     "serve": "node scripts/serve.mjs",
     "serve:https": "node scripts/serve.mjs --https",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.3",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/cli": "^6.2.3",
+    "@capacitor/core": "^6.2.3",
+    "@capacitor/filesystem": "^6.0.4",
+    "@capacitor/keyboard": "^6.0.4",
+    "@capacitor/share": "^6.0.4",
+    "@capacitor/status-bar": "^6.0.3",
     "dayjs": "^1.11.23",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
