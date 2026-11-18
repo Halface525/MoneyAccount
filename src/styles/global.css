@@ -432,12 +432,101 @@ textarea {
   background: linear-gradient(90deg, #f0916f, #d65a44);
 }
 
-/* ---------- Quick shortcuts ---------- */
+/* ---------- 两个主入口：记一笔 / 对话记账 ---------- */
+.entries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px 14px;
+  min-height: 74px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  transition: transform 0.15s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.entry:active {
+  transform: scale(0.97);
+}
+
+.entry .em {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.entry .txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.entry .t {
+  font-size: 14.5px;
+  font-weight: 640;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.entry .s {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 记一笔：主色实心，视觉上略重一点 */
+.entry-add {
+  border-color: transparent;
+  background: linear-gradient(150deg, #f6bd62, #dd9130);
+  box-shadow: 0 8px 20px -10px rgba(160, 92, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.entry-add .em {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.entry-add .t {
+  color: #34200c;
+}
+
+.entry-add .s {
+  color: rgba(52, 32, 12, 0.62);
+}
+
+/* 对话记账：柔和底 + 描边 */
+.entry-chat .em {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-3));
+}
+
+[data-theme='dark'] .entry-add {
+  background: linear-gradient(150deg, #f2bc5f, #cf8a2a);
+}
+
+/* ---------- 常用分类 ---------- */
 .shortcuts {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  margin-top: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .shortcut {

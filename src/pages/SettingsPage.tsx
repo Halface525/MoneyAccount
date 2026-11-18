@@ -62,7 +62,7 @@ export default function SettingsPage({
   const [showAi, setShowAi] = useState(false)
   const [aiCfg, setAiCfg] = useState<AiConfig>({
     apiKey: '',
-    model: 'deepseek-chat',
+    model: AI_MODELS[0].id,
     enabled: true,
   })
 
@@ -568,20 +568,31 @@ function AiSettings({
 
       <div className="lbl" style={{ margin: '0 4px 8px', fontSize: 13 }}>模型</div>
       <div className="card" style={{ overflow: 'hidden', marginBottom: 12 }}>
-        {AI_MODELS.map((m) => (
-          <button
-            key={m.id}
-            className="list-row"
-            onClick={() => setModel(m.id)}
-            style={model === m.id ? { background: 'var(--accent-soft)' } : undefined}
-          >
-            <span className="lbl" style={{ color: 'var(--text)', fontWeight: 550 }}>{m.label}</span>
-            <span className="val" style={{ fontFamily: 'var(--font-sans)', fontSize: 12 }}>
-              {m.hint}
+        {AI_MODELS.length === 1 ? (
+          <div className="list-row">
+            <span className="lbl" style={{ color: 'var(--text)', fontWeight: 550 }}>
+              {AI_MODELS[0].label}
             </span>
-            {model === m.id && <span className="chip">选中</span>}
-          </button>
-        ))}
+            <span className="val" style={{ fontFamily: 'var(--font-sans)', fontSize: 12 }}>
+              {AI_MODELS[0].hint}
+            </span>
+          </div>
+        ) : (
+          AI_MODELS.map((m) => (
+            <button
+              key={m.id}
+              className="list-row"
+              onClick={() => setModel(m.id)}
+              style={model === m.id ? { background: 'var(--accent-soft)' } : undefined}
+            >
+              <span className="lbl" style={{ color: 'var(--text)', fontWeight: 550 }}>{m.label}</span>
+              <span className="val" style={{ fontFamily: 'var(--font-sans)', fontSize: 12 }}>
+                {m.hint}
+              </span>
+              {model === m.id && <span className="chip">选中</span>}
+            </button>
+          ))
+        )}
       </div>
 
       <button

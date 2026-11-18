@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useApp } from '../lib/store'
-import { formatMonth, money, percent } from '../lib/format'
+import { formatMonth, money, moneySigned, percent } from '../lib/format'
 import Donut from '../components/Donut'
 import TrendChart from '../components/TrendChart'
 import Heatmap from '../components/Heatmap'
@@ -125,10 +125,10 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
       <div className="card stat-hero">
         <div className="row" style={{ justifyContent: 'space-between' }}>
           <span className="m">本月结余</span>
-          <span className="tag mute">日均支出 ¥{money(avgDaily, { decimals: false })}</span>
+          <span className="tag mute">日均支出 ¥{money(avgDaily)}</span>
         </div>
         <div className="big" style={{ color: total.net >= 0 ? 'var(--text)' : 'var(--negative)' }}>
-          {total.net < 0 ? '-' : ''}¥{money(Math.abs(total.net))}
+          {moneySigned(total.net)}
         </div>
         <div className="legend">
           <span>
@@ -172,7 +172,7 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
       <section className="section">
         <div className="section-head">
           <h2>每日支出</h2>
-          <span className="more">最高 ¥{money(dailyMax, { decimals: false })}</span>
+          <span className="more">最高 ¥{money(dailyMax)}</span>
         </div>
         <div className="card card-pad" style={{ padding: '14px 12px 8px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 74 }}>
@@ -225,7 +225,7 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Donut slices={byCat.slice(0, 8)} size={168} thickness={19}>
                 <div className="k">{view === 'expense' ? '总支出' : '总收入'}</div>
-                <div className="v">¥{money(viewTotal, { decimals: false })}</div>
+                <div className="v">¥{money(viewTotal)}</div>
               </Donut>
             </div>
             <div style={{ marginTop: 12 }}>
@@ -250,7 +250,7 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
                       }}
                     />
                   </span>
-                  <span className="amt">{money(c.value, { decimals: false })}</span>
+                  <span className="amt">{money(c.value)}</span>
                   <span className="pct">{((c.value / viewTotal) * 100).toFixed(0)}%</span>
                 </button>
               ))}

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { db } from '../db'
 import { useApp } from '../lib/store'
-import { formatMonth, money, percent } from '../lib/format'
+import { formatMonth, money, moneySigned, percent } from '../lib/format'
 import Sheet from '../components/Sheet'
 import {
   IconChevronLeft,
@@ -49,7 +49,8 @@ export default function BudgetPage({ back }: { back: () => void }) {
     .sort((a, b) => b.amount - a.amount)
 
   const catBudgetSum = catBudgets.reduce((s, b) => s + b.amount, 0)
-  const unbudgeted = totalBudget > 0 ? Math.max(0, totalBudget - catBudgetSum) : 0
+  // 分类预算之和超过总预算时是负数——这比显示 0 更能说明「分超了」
+  const unbudgeted = totalBudget > 0 ? totalBudget - catBudgetSum : 0
 
   const saveBudget = async (categoryId: string, amountFen: number) => {
     const id = `${month}::${categoryId}`
@@ -124,14 +125,14 @@ export default function BudgetPage({ back }: { back: () => void }) {
             {totalBudget === 0
               ? '—'
               : overspent
-                ? `超支 ¥${money(totalExpense - totalBudget, { decimals: false })}`
-                : `¥${money(left, { decimals: false })}`}
+                ? `超支 ${moneySigned(totalExpense - totalBudget)}`
+                : `${moneySigned(left)}`}
           </span>
           <span className="small">
             {totalBudget > 0
               ? overspent
-                ? `预算 ¥${money(totalBudget, { decimals: false })} 已用完`
-                : `/ ¥${money(totalBudget, { decimals: false })} 剩余`
+                ? `预算 ¥${money(totalBudget)} 已用完`
+                : `/ ¥${money(totalBudget)} 剩余`
               : '还没有设置预算'}
           </span>
         </div>
@@ -148,7 +149,7 @@ export default function BudgetPage({ back }: { back: () => void }) {
         <div className="row" style={{ justifyContent: 'space-between', marginTop: 8, fontSize: 11.5, color: 'var(--text-3)' }}>
           <span>已花 ¥{money(totalExpense)}</span>
           {totalBudget > 0 && isCurrent && !overspent && (
-            <span>日均可用 ¥{money(perDayLeft, { decimals: false })}</span>
+            <span>日均可用 ¥{money(perDayLeft)}</span>
           )}
         </div>
       </div>
@@ -195,10 +196,10 @@ export default function BudgetPage({ back }: { back: () => void }) {
                     </span>
                     <span className="row" style={{ gap: 6 }}>
                       <span className="big-num" style={{ fontSize: 13 }}>
-                        {money(b.spent, { decimals: false })}
+                        ¥{money(b.spent)}
                         <span style={{ color: 'var(--text-3)' }}>
                           {' '}
-                          / {money(b.amount, { decimals: false })}
+                          / ¥{money(b.amount)}
                         </span>
                       </span>
                       {over && <span className="tag warn">超支</span>}
@@ -224,8 +225,8 @@ export default function BudgetPage({ back }: { back: () => void }) {
             className="row small"
             style={{ justifyContent: 'space-between', padding: '10px 4px 0', color: 'var(--text-3)' }}
           >
-            <span>分类预算合计 ¥{money(catBudgetSum, { decimals: false })}</span>
-            <span>未分配 ¥{money(unbudgeted, { decimals: false })}</span>
+            <span>分类预算合计 ¥{money(catBudgetSum)}</span>
+            <span>未分配 {moneySigned(unbudgeted)}</span>
           </div>
         )}
       </section>

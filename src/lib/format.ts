@@ -7,20 +7,31 @@ export function fen2yuan(fen: number): string {
   return (fen / 100).toFixed(2)
 }
 
-/** 分 -> 带千分位的元，不带符号 */
+/**
+ * 分 -> 带千分位的元。
+ * 默认保留两位小数（金额永远不该丢掉角分）；只有明确传 decimals:false
+ * 的概览类数字才四舍五入成整数。
+ * 负数会保留负号——任何调用方都不该自己再 Math.abs 一次。
+ */
 export function money(fen: number, opts: { decimals?: boolean } = {}): string {
   const decimals = opts.decimals ?? true
-  const v = Math.abs(fen) / 100
-  const s = v.toLocaleString('zh-CN', {
+  // fen === 0 也覆盖 -0，否则 toLocaleString 会输出 "-0.00"
+  const safe = !Number.isFinite(fen) || fen === 0 ? 0 : fen
+  return (safe / 100).toLocaleString('zh-CN', {
     minimumFractionDigits: decimals ? 2 : 0,
     maximumFractionDigits: decimals ? 2 : 0,
   })
-  return s
 }
 
-/** 分 -> ¥1,234.00 */
+/** 分 -> ¥1,234.00（负数带负号） */
 export function moneySign(fen: number): string {
-  return (fen < 0 ? '-' : '') + CURRENCY + money(fen)
+  return CURRENCY + money(fen)
+}
+
+/** 分 -> -¥1,234.00，负号在货币符号前 */
+export function moneySigned(fen: number, opts: { decimals?: boolean } = {}): string {
+  const s = money(fen, opts)
+  return s.startsWith('-') ? '-' + CURRENCY + s.slice(1) : CURRENCY + s
 }
 
 /**

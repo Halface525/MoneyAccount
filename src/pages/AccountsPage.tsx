@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
-import { money, uid } from '../lib/format'
+import { money, moneySigned, uid } from '../lib/format'
 import Sheet from '../components/Sheet'
 import {
   IconChevronLeft,
@@ -67,18 +67,17 @@ export default function AccountsPage({ back }: { back: () => void }) {
       <div className="hero" style={{ padding: '18px 20px' }}>
         <div className="hero-label">净资产</div>
         <div className="hero-balance" style={{ fontSize: 34 }}>
-          <span className="cur">¥</span>
-          {money(netWorth)}
+          {moneySigned(netWorth)}
         </div>
         <div className="hero-strip" style={{ marginTop: 14 }}>
           <div className="hero-stat">
             <div className="k">资产</div>
-            <div className="v">¥{money(assets)}</div>
+            <div className="v">{moneySigned(assets)}</div>
           </div>
           <div className="hero-stat">
             <div className="k">负债</div>
             <div className="v" style={{ color: debts < 0 ? '#ff9d88' : undefined }}>
-              ¥{money(Math.abs(debts))}
+              {moneySigned(-debts)}
             </div>
           </div>
         </div>
@@ -129,7 +128,7 @@ export default function AccountsPage({ back }: { back: () => void }) {
                       color: bal < 0 ? 'var(--negative)' : 'var(--text)',
                     }}
                   >
-                    ¥{money(bal)}
+                    {moneySigned(bal)}
                   </div>
                   {a.kind === 'credit' && a.creditLimit ? (
                     <div className="sub">额度 ¥{money(a.creditLimit, { decimals: false })}</div>

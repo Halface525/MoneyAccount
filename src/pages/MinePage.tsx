@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import dayjs from 'dayjs'
 import { useApp } from '../lib/store'
-import { money } from '../lib/format'
+import { moneySigned } from '../lib/format'
 import {
   IconChevronRight,
   IconChart,
@@ -107,7 +107,7 @@ export default function MinePage({ navigate }: { navigate: (to: string) => void 
         <div style={{ textAlign: 'right' }}>
           <div className="small muted" style={{ fontSize: 11 }}>净资产</div>
           <div className="big-num" style={{ fontSize: 16, fontWeight: 600 }}>
-            ¥{money(stats.netWorth)}
+            {moneySigned(stats.netWorth)}
           </div>
         </div>
       </div>

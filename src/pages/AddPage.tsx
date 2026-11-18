@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import dayjs from 'dayjs'
 import { db } from '../db'
 import { useApp } from '../lib/store'
-import { formatDateLabel, money, nowTime, parseAmount, todayStr, uid } from '../lib/format'
+import { formatDateLabel, money, moneySigned, nowTime, parseAmount, todayStr, uid } from '../lib/format'
 import Sheet from '../components/Sheet'
 import CategoryEditor from '../components/CategoryEditor'
 import {
@@ -255,7 +255,7 @@ export default function AddPage({
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{acc?.name}</div>
               <div className="small muted">
-                ¥{money(accountBalances.get(accountId) ?? 0, { decimals: false })}
+                {moneySigned(accountBalances.get(accountId) ?? 0)}
               </div>
             </div>
             <div style={{ color: 'var(--accent)', flex: 'none' }}>
@@ -270,7 +270,7 @@ export default function AddPage({
               </div>
               <div style={{ fontSize: 13.5, fontWeight: 500 }}>{toAcc?.name}</div>
               <div className="small muted">
-                ¥{money(accountBalances.get(toAccountId) ?? 0, { decimals: false })}
+                {moneySigned(accountBalances.get(toAccountId) ?? 0)}
               </div>
             </div>
           </div>

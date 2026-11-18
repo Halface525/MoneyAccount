@@ -14,9 +14,12 @@ const isNative = Capacitor.isNativePlatform()
 
 export const AI_ENDPOINT = 'https://api.deepseek.com/chat/completions'
 
+/**
+ * 只用 Flash：记账解析是短输入短输出，Flash 快一个数量级、便宜十倍，
+ * 准确率对这种结构化抽取完全够。V4-Pro 留给长上下文重推理的场景。
+ */
 export const AI_MODELS = [
-  { id: 'deepseek-chat', label: 'DeepSeek-V3', hint: '快，日常够用' },
-  { id: 'deepseek-reasoner', label: 'DeepSeek-R1', hint: '慢一点，绕的话更准' },
+  { id: 'deepseek-flash', label: 'DeepSeek-V4.1-Flash', hint: '最新版，够快也够准' },
 ] as const
 
 export interface AiConfig {
@@ -30,7 +33,7 @@ const CFG_KEY = 'ai.config'
 
 const DEFAULT_CONFIG: AiConfig = {
   apiKey: '',
-  model: 'deepseek-chat',
+  model: AI_MODELS[0].id,
   enabled: true,
 }
 
@@ -39,7 +42,11 @@ let cached: AiConfig | null = null
 export async function loadAiConfig(): Promise<AiConfig> {
   if (cached) return cached
   const saved = await getSetting<Partial<AiConfig> | null>(CFG_KEY, null)
-  cached = { ...DEFAULT_CONFIG, ...(saved ?? {}) }
+  const merged = { ...DEFAULT_CONFIG, ...(saved ?? {}) }
+  // 老版本存过 deepseek-chat / deepseek-reasoner，这两个名字已下线，
+  // 统一挪到现在的 Flash，免得用户升级后报错还得自己找原因
+  if (!AI_MODELS.some((m) => m.id === merged.model)) merged.model = DEFAULT_CONFIG.model
+  cached = merged
   return cached
 }
 
@@ -289,6 +296,9 @@ export async function chatOnce(
   const body = JSON.stringify({
     model: cfg.model,
     messages,
+    // 记账只要「看懂这句话并输出 JSON」，不需要思维链；
+    // 关掉省掉几千 token 的推理开销，响应也从十几秒降到一两秒
+    thinking: { type: 'disabled' },
     temperature: 0,
     max_tokens: opts.maxTokens ?? 1200,
     ...(opts.json ? { response_format: { type: 'json_object' } } : {}),
@@ -334,8 +344,8 @@ export async function askAi(
 ): Promise<AiParseResult> {
   if (!aiReady(cfg)) throw new AiError('no-key', '没有配置 API Key')
 
-  // R1 想得久，给足时间；V3 8 秒内基本能回
-  const timeout = cfg.model === 'deepseek-reasoner' ? 60000 : 25000
+  // 关掉思考后一般 1-3 秒回，留 20 秒兜网络抖动
+  const timeout = 20000
 
   const content = await chatOnce(
     buildMessages(text, ctx, now),

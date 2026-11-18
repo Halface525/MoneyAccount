@@ -6,6 +6,7 @@ import {
   formatMonth,
   greeting,
   money,
+  moneySigned,
   percent,
   splitMoney,
   weekdayLabel,
@@ -65,8 +66,25 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
   const budgetLeft = totalBudget - stats.expense
   const heroMoney = splitMoney(stats.expense)
 
+  // 两个主入口：手动记一笔、说一句话让它记。其余是常用分类的快捷方式。
+  const entries = [
+    {
+      key: 'add',
+      em: '✍️',
+      title: '记一笔',
+      sub: '自己填金额分类',
+      go: () => navigate('/add'),
+    },
+    {
+      key: 'chat',
+      em: '💬',
+      title: '对话记账',
+      sub: '说一句话就记上',
+      go: () => navigate('/chat'),
+    },
+  ]
+
   const shortcuts = [
-    { em: '💬', label: '对话记账', go: () => navigate('/chat') },
     { em: '🍜', label: '餐饮', go: () => navigate('/add?cat=c_food') },
     { em: '🚇', label: '交通', go: () => navigate('/add?cat=c_transport') },
     { em: '🛍️', label: '购物', go: () => navigate('/add?cat=c_shopping') },
@@ -111,7 +129,7 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
           <span className="dec">{heroMoney.dec}</span>
         </div>
         <div className="hero-sub">
-          共 {stats.count} 笔 · 日均 ¥{money(dailyAvg, { decimals: false })}
+          共 {stats.count} 笔 · 日均 ¥{money(dailyAvg)}
         </div>
 
         <div className="hero-strip">
@@ -131,7 +149,7 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
               className="v"
               style={{ color: stats.balance >= 0 ? 'var(--positive)' : 'var(--negative)' }}
             >
-              {stats.balance < 0 ? '-' : ''}¥{money(Math.abs(stats.balance))}
+              {moneySigned(stats.balance)}
             </div>
           </div>
         </div>
@@ -140,12 +158,12 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
           <div className="budget-line">
             <div className="row">
               <span>
-                月预算 ¥{money(totalBudget, { decimals: false })}
+                月预算 ¥{money(totalBudget)}
               </span>
               <span>
                 {budgetLeft >= 0
-                  ? `剩 ¥${money(budgetLeft, { decimals: false })}`
-                  : `超支 ¥${money(-budgetLeft, { decimals: false })}`}
+                  ? `剩 ${moneySigned(budgetLeft)}`
+                  : `超支 ${moneySigned(-budgetLeft)}`}
               </span>
             </div>
             <div className="budget-track">
@@ -183,12 +201,26 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
                 className="v num"
                 style={{ color: (accountBalances.get(a.id) ?? 0) < 0 ? 'var(--negative)' : undefined }}
               >
-                ¥{money(accountBalances.get(a.id) ?? 0, { decimals: false })}
+                {moneySigned(accountBalances.get(a.id) ?? 0)}
               </span>
             </button>
           ))}
         </div>
       </section>
+
+      <div className="entries">
+        {entries.map((e) => (
+          <button key={e.key} className={'entry entry-' + e.key} onClick={e.go}>
+            <span className="em" aria-hidden>
+              {e.em}
+            </span>
+            <span className="txt">
+              <span className="t">{e.title}</span>
+              <span className="s">{e.sub}</span>
+            </span>
+          </button>
+        ))}
+      </div>
 
       <div className="shortcuts">
         {shortcuts.map((s) => (

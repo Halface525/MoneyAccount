@@ -518,6 +518,8 @@ function cleanNote(text: string): string {
   out = out.replace(/^(花了|花掉|付了|支付了|支付|收到|收了|赚了|赚到|充值了|充值|交了|买了)\s*/, '')
   out = out.replace(/^(个|只|件|杯|瓶|份|张|条|袋|盒|包|斤|次|台|部|双|套|本)/, '')
   out = out.replace(/(的|了|吧|呀|啊|呢|啦|哦|喔|哈|嘛)+$/g, '')
+  // 「还有个快递没填钱」里的「没填钱」是在说缺字段，不是备注
+  out = out.replace(/(还)?(没填|没写|没说|不知道|忘了)(金额|多少钱|钱|价格)?/g, ' ')
   // 抠掉金额/账户后剩下的连接词，免得备注变成「还 从」
   out = out
     .split(' ')
@@ -608,7 +610,10 @@ function splitSegments(text: string): string[] {
     }
   }
   if (carry) {
-    if (out.length) out[out.length - 1] = `${out[out.length - 1]} ${carry}`
+    // 带着分类词的碎片（「还有个快递」）是另一笔，别并到上一条的备注里，
+    // 让它单独成段，解析时就会显示成「还缺金额」的卡片。
+    const isOwnItem = ALL_CATEGORY_WORDS.some((w) => carry.includes(w))
+    if (out.length && !isOwnItem) out[out.length - 1] = `${out[out.length - 1]} ${carry}`
     else out.push(carry)
   }
   return out.flatMap(splitByKeywords)
