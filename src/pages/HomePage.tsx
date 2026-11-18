@@ -12,6 +12,7 @@ import {
   weekdayLabel,
 } from '../lib/format'
 import TransactionRow from '../components/TransactionRow'
+import UpdateBanner from '../components/UpdateBanner'
 import { IconChevronLeft, IconChevronRight } from '../components/Icons'
 import type { Transaction } from '../db/types'
 
@@ -118,6 +119,8 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
           </button>
         </div>
       </header>
+
+      <UpdateBanner />
 
       <section className="hero">
         <div className="hero-label">

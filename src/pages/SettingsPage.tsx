@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
 import { saveTextFile, openExternal } from '../lib/native'
-import { checkUpdate, RELEASES_URL } from '../lib/update'
+import { RELEASES_URL } from '../lib/update'
 import {
   buildBackup,
   backupToCsv,
@@ -48,12 +48,10 @@ export default function SettingsPage({
   back: () => void
   navigate: (to: string) => void
 }) {
-  const { theme, setTheme, transactions, accounts, categories, recurring, toast } = useApp()
+  const { theme, setTheme, transactions, accounts, categories, recurring, toast, update } = useApp()
   const fileRef = useRef<HTMLInputElement>(null)
   const [confirmClear, setConfirmClear] = useState(false)
   const [importing, setImporting] = useState(false)
-  const [checking, setChecking] = useState(false)
-  const [update, setUpdate] = useState<null | { latest: string; hasUpdate: boolean }>(null)
   const [saveState, setSaveState] = useState<SaveState | null>(getLastSave())
   const [archives, setArchives] = useState<{ name: string; size: number; mtime: number }[]>([])
   const [showArchives, setShowArchives] = useState(false)
@@ -80,20 +78,9 @@ export default function SettingsPage({
     return off
   }, [])
 
-  const onCheckUpdate = async () => {
-    if (checking) return
-    setChecking(true)
-    const res = await checkUpdate(__APP_VERSION__)
-    setChecking(false)
-    if (!res.ok) {
-      toast(res.reason === 'network' ? '检查失败，请检查网络' : '版本信息格式异常')
-      return
-    }
-    if (res.hasUpdate) {
-      setUpdate({ latest: res.latest, hasUpdate: true })
-    } else {
-      toast('已经是最新版本')
-    }
+  const onCheckUpdate = () => {
+    if (update.checking) return
+    void update.refresh(true)
   }
 
   /** 立刻把当前数据写进手机文件，并刷新界面上的状态 */
@@ -384,11 +371,21 @@ export default function SettingsPage({
           <h2>关于</h2>
         </div>
         <div className="card" style={{ overflow: 'hidden' }}>
-          <button className="list-row" onClick={onCheckUpdate} disabled={checking}>
+          <button className="list-row" onClick={onCheckUpdate} disabled={update.checking}>
             <span className="lbl">版本</span>
             <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
-              {checking ? '检查中…' : __APP_VERSION__}
+              {update.checking ? '检查中…' : __APP_VERSION__}
+              {update.hasUpdate && (
+                <span style={{ color: 'var(--accent-text)' }}> · 有新版本</span>
+              )}
             </span>
+            <IconChevronRight size={16} className="chev" />
+          </button>
+          <button className="list-row" onClick={() => void openExternal(RELEASES_URL)}>
+            <span style={{ color: 'var(--text-2)' }}>
+              <IconDownload size={17} />
+            </span>
+            <span className="lbl">打开发布页</span>
             <IconChevronRight size={16} className="chev" />
           </button>
           <div className="list-row">
@@ -402,6 +399,9 @@ export default function SettingsPage({
             <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>未启用</span>
           </div>
         </div>
+        <p className="small muted" style={{ padding: '8px 4px 0', lineHeight: 1.6 }}>
+          打开 App 会自动检查一次更新，有新版本首页会直接提示。检查只读版本号，不发送记账数据。
+        </p>
       </section>
 
       {showAi && (
@@ -434,28 +434,6 @@ export default function SettingsPage({
               ))}
             </div>
           )}
-        </Sheet>
-      )}
-
-      {update && (
-        <Sheet title="发现新版本" onClose={() => setUpdate(null)}>
-          <p style={{ color: 'var(--text-2)', fontSize: 14, padding: '0 4px 16px', lineHeight: 1.7 }}>
-            当前 <b style={{ color: 'var(--text)' }}>v{__APP_VERSION__}</b>，
-            最新 <b style={{ color: 'var(--accent)' }}>v{update.latest}</b>。
-            <br />
-            新版需要下载安装包覆盖安装，记账数据会保留。
-          </p>
-          <div className="row" style={{ gap: 10 }}>
-            <button
-              className="btn btn-ghost btn-block"
-              onClick={() => { setUpdate(null); openExternal(RELEASES_URL) }}
-            >
-              打开下载页
-            </button>
-            <button className="btn btn-primary btn-block" onClick={() => setUpdate(null)}>
-              以后再说
-            </button>
-          </div>
         </Sheet>
       )}
 

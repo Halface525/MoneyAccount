@@ -12,13 +12,15 @@
 已经打包好签名的安装包，两种拿法：
 
 - **直接下载**：[最新 Release](https://github.com/nimingzhe-ding/MoneyAccount/releases/latest) 里的
-  `suishouji-1.4.1.apk`，手机上点开就能装。
-- **仓库里**：[`release/suishouji-1.4.1.apk`](release/suishouji-1.4.1.apk)，随代码一起在版本库中。
+  `suishouji-1.5.0.apk`，手机上点开就能装。
+- **仓库里**：[`release/suishouji-1.4.1.apk`](release/suishouji-1.4.1.apk) 是上一版；新版打完包
+  也放进 `release/` 目录。
 
 装的时候需要在系统里允许「安装未知来源应用」。首次打开会看到深色启动页 + 金色 ¥ 图标。
 
-App 里点「设置 → 关于 → 版本」会检查更新：只读一次仓库里的 `package.json` 比版本号，
-**不上传任何记账数据**，发现有新版会给出 Release 下载页入口。
+**检查更新不用手动点**：每次打开 App 会顺便比一下版本（6 小时内不重复联网），
+发现新版就在首页顶部出现一行「新版本 vX.Y.Z 可以装了」，点「下载」直接跳安装包。
+只读公开的 `package.json` / Release 版本号，**不上传任何记账数据**；不常驻后台、不弹系统通知。
 
 自己重新构建：
 
@@ -50,11 +52,13 @@ npm run android:release
 `versionName`，并按 `major*10000 + minor*100 + patch` 算出单调递增的 `versionCode`
 （1.0.1 → 10001），否则安卓会拒绝覆盖安装。界面里显示的版本号也来自同一个值。
 
-打完包再发个 Release，App 里的「检查更新」才有地方可下载：
+打完包再发个 Release，App 里的「下载」按钮才有地方可跳。安装包按
+`suishouji-<版本号>.apk` 命名——App 就是按这个约定拼下载地址的；如果 Release 里
+还没有这个文件，可以先用「设置 → 关于 → 打开发布页」兜底。
 
 ```bash
-git tag v1.4.1 && git push origin v1.4.1
-gh release create v1.4.1 release/suishouji-1.4.1.apk --title "随手记 1.4.1"
+git tag v1.5.0 && git push origin v1.5.0
+gh release create v1.5.0 release/suishouji-1.5.0.apk --title "随手记 1.5.0"
 ```
 
 ## 数据存在哪
@@ -113,6 +117,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | 外观 | 跟随系统 / 浅色 / 深色 |
 | 数据文件 | 自动把账本写成手机里的 JSON 文件，按天留档，可回滚到任意一天 |
 | 桌面小组件 | 2×2 卡片显示今日支出与本月预算；4×2 卡片显示近 19 周打卡热力图、今日/本月支出与预算，点加号直接进记账页 |
+| 更新提醒 | 打开 App 自动查一次版本，新版在首页顶部一行提示，点「下载」直接跳安装包；点「×」跳过这一版 |
 | 备份 | 导出 JSON 全量备份、导出 CSV 明细、从备份恢复、清空数据 |
 
 ## 设计上的取舍
@@ -120,6 +125,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 - **金额用「分」存整数**，不用浮点，避免 0.1 + 0.2 的经典问题。
 - **账户余额是算出来的**：`初始余额 + 收入 − 支出`，转账双边扣加。不做冗余余额字段，永远不会算错。
 - **周期账单在启动时补记**，不依赖后台任务——WebView 壳里没法常驻后台。
+- **检查更新也只在启动时做**：并行问几个镜像，谁先回来用谁；结果缓存 6 小时，失败就安静等下次打开。不起后台任务、不发系统通知，少一点常驻，也就少一点打扰和耗电。
 - **图表手写 SVG**，不引图表库，包体小、样式可控。
 - **无路由库**，一个 hash 路由 40 行搞定，刷新不 404。
 - **桌面小组件不碰账本文件**：组件进程读不到 WebView 的 IndexedDB，也不该去解析整份 JSON。Web 层每次数据变化把几个数字写进 SharedPreferences，原生只负责渲染，金额依旧是「分」。热力图在原生侧直接画成 Bitmap，不往 RemoteViews 里塞上百个格子 View。
@@ -144,7 +150,7 @@ src/
               nlp.ts 本地中文记账解析（金额/分类/账户/日期/多笔，纯规则、不联网）
               ai.ts 可选的 DeepSeek 解析（自己填 Key 才启用，失败自动退回本地规则）
               native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链、组件深链
-              update.ts 检查更新（只读远端 package.json 的版本号）
+              update.ts 检查更新（多镜像并行、结果缓存 6 小时，只读版本号）
               heatmap.ts 打卡热力图计算（统计页与桌面组件共用）
               widget.ts 桌面小组件快照：算好今日收支与预算，交给原生插件
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
@@ -204,6 +210,9 @@ React 19 · TypeScript · Vite · Dexie（内存库）· dayjs · Capacitor 6（
 
 账本同时存在两处：**手机里的 JSON 文件**（长期）和 App 内的数据库（运行时）。
 卸载 App 不会删掉那个文件，重装后自动读回来。
+
+App 平时不联网。唯一固定会发请求的是更新检查：启动时（6 小时内最多一次）只读
+公开的版本号；除此之外，不填 AI Key 就完全不发请求。
 
 但还是建议偶尔在「设置 → 数据文件」点一下「立即保存」，并在换手机前
 用「导出备份」存一份到网盘。「历史留档」里能按天回滚到之前的状态。

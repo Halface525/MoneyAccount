@@ -2076,6 +2076,48 @@ textarea {
 .switch.on::after {
   transform: translateX(16px);
 }
+
+/* ---------- 更新提醒 ---------- */
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 12px;
+  padding: 10px 10px 10px 13px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.update-banner .em {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.update-banner .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.update-banner .txt b {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.update-banner .txt span {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+.update-banner .btn-sm {
+  flex: none;
+}
+
 /* ---------- 分类编辑面板（简化版） ---------- */
 .ce-head {
   display: flex;

@@ -1,13 +1,13 @@
 {
   "name": "money-account",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
-    "android:sync": "node scripts/sync-version.mjs && npm run build && npx cap sync android",
+    "android:sync": "node scripts/sync-version.mjs && node scripts/clean-web-assets.mjs && npm run build && npx cap sync android",
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease",
     "version": "node scripts/sync-version.mjs"
