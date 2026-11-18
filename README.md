@@ -12,8 +12,8 @@
 已经打包好签名的安装包，两种拿法：
 
 - **直接下载**：[最新 Release](https://github.com/nimingzhe-ding/MoneyAccount/releases/latest) 里的
-  `suishouji-1.4.0.apk`，手机上点开就能装。
-- **仓库里**：[`release/suishouji-1.4.0.apk`](release/suishouji-1.4.0.apk)，随代码一起在版本库中。
+  `suishouji-1.4.1.apk`，手机上点开就能装。
+- **仓库里**：[`release/suishouji-1.4.1.apk`](release/suishouji-1.4.1.apk)，随代码一起在版本库中。
 
 装的时候需要在系统里允许「安装未知来源应用」。首次打开会看到深色启动页 + 金色 ¥ 图标。
 
@@ -53,8 +53,8 @@ npm run android:release
 打完包再发个 Release，App 里的「检查更新」才有地方可下载：
 
 ```bash
-git tag v1.4.0 && git push origin v1.4.0
-gh release create v1.4.0 release/suishouji-1.4.0.apk --title "随手记 1.4.0"
+git tag v1.4.1 && git push origin v1.4.1
+gh release create v1.4.1 release/suishouji-1.4.1.apk --title "随手记 1.4.1"
 ```
 
 ## 数据存在哪

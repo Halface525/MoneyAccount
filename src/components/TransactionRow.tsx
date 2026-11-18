@@ -55,8 +55,7 @@ export default function TransactionRow({
           (tx.type === 'income' ? ' income' : tx.type === 'transfer' ? ' transfer' : '')
         }
       >
-        {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
-        {money(tx.amount)}
+        {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}¥{money(tx.amount)}
       </span>
     </button>
   )

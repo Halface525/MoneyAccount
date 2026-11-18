@@ -250,7 +250,7 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
                       }}
                     />
                   </span>
-                  <span className="amt">{money(c.value)}</span>
+                  <span className="amt">¥{money(c.value)}</span>
                   <span className="pct">{((c.value / viewTotal) * 100).toFixed(0)}%</span>
                 </button>
               ))}

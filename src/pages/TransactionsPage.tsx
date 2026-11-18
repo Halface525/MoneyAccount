@@ -205,8 +205,8 @@ export default function TransactionsPage({
                   {formatDateLabel(date)} · {weekdayLabel(date)}
                 </span>
                 <span className="amt">
-                  {exp > 0 && <span>支出 {money(exp)}</span>}
-                  {inc > 0 && <span>收入 {money(inc)}</span>}
+                  {exp > 0 && <span>支出 ¥{money(exp)}</span>}
+                  {inc > 0 && <span>收入 ¥{money(inc)}</span>}
                 </span>
               </div>
               {items.map((t) => (
