@@ -659,6 +659,7 @@ textarea {
 
 .tx-swipe .tx-row {
   background: var(--surface);
+  will-change: transform;
 }
 
 .tx-swipe .tx-row:active {
@@ -680,7 +681,7 @@ textarea {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 76px;
+  width: 60px;
   background: var(--negative);
 }
 
@@ -690,6 +691,11 @@ textarea {
   display: grid;
   place-items: center;
   color: #fff;
+  transition: background 0.12s;
+}
+
+.tx-delete:active {
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .cat-icon {
