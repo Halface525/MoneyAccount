@@ -5,7 +5,7 @@
     <string name="package_name">com.nimingzhe.moneyaccount</string>
     <string name="custom_url_scheme">com.nimingzhe.moneyaccount</string>
     <string name="widget_label">随手记 · 今日</string>
-    <string name="widget_description">今日支出、今日收入与本月预算，点加号直接记一笔</string>
+    <string name="widget_description">今日支出与本月预算，点加号直接记一笔</string>
     <string name="widget_date_pattern">M月d日 EEEE</string>
     <string name="widget_budget_left">剩余 %1$s</string>
     <string name="widget_budget_over">超支 %1$s</string>

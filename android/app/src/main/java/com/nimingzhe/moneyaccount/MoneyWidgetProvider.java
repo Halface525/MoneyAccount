@@ -21,7 +21,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Home screen widget: today's expense / income and this month's budget.
+ * Home screen widget: today's expense and this month's budget.
  * Tapping "+" opens the add-transaction page.
  *
  * The widget runs inside the launcher process and cannot reach the WebView's
@@ -77,12 +77,10 @@ public class MoneyWidgetProvider extends AppWidgetProvider {
         boolean sameMonth = month.equals(sp.getString("month", ""));
 
         long todayExpense = sameDay ? sp.getLong("todayExpense", 0) : 0;
-        long todayIncome = sameDay ? sp.getLong("todayIncome", 0) : 0;
         long monthExpense = sameMonth ? sp.getLong("monthExpense", 0) : 0;
         long monthBudget = sameMonth ? sp.getLong("monthBudget", 0) : 0;
 
         views.setTextViewText(R.id.today_expense, money(todayExpense));
-        views.setTextViewText(R.id.today_income, money(todayIncome));
         views.setTextViewText(
             R.id.widget_date,
             new SimpleDateFormat(

@@ -63,38 +63,10 @@
                 android:layout_marginTop="1dp"
                 android:text="¥0.00"
                 android:textColor="#F7EFE2"
-                android:textSize="26sp"
+                android:textSize="30sp"
                 android:textStyle="bold"
                 android:fontFeatureSettings="tnum"
                 android:includeFontPadding="false" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="今日收入"
-                    android:textColor="#B3A48F"
-                    android:textSize="10sp"
-                    android:includeFontPadding="false" />
-
-                <TextView
-                    android:id="@+id/today_income"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="¥0.00"
-                    android:textColor="#5CC38D"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:fontFeatureSettings="tnum"
-                    android:includeFontPadding="false" />
-            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
