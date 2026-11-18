@@ -4,13 +4,14 @@ import { db } from '../db'
 import { useApp } from '../lib/store'
 import { formatDateLabel, money, nowTime, parseAmount, todayStr, uid } from '../lib/format'
 import Sheet from '../components/Sheet'
+import CategoryEditor from '../components/CategoryEditor'
 import {
   IconCalendar,
   IconCheck,
   IconTransfer,
   IconTrash,
 } from '../components/Icons'
-import type { Transaction, TxType } from '../db/types'
+import type { Category, Transaction, TxType } from '../db/types'
 
 type Mode = TxType
 
@@ -38,11 +39,13 @@ export default function AddPage({
   const [time, setTime] = useState(nowTime())
   const [note, setNote] = useState('')
   const [sheet, setSheet] = useState<'account' | 'toAccount' | 'date' | 'note' | null>(null)
+  const [catEditor, setCatEditor] = useState<Category | 'new' | null>(null)
   const [noteDraft, setNoteDraft] = useState('')
   const [loaded, setLoaded] = useState(!editId)
   const [saving, setSaving] = useState(false)
 
   const originalRef = useRef<Transaction | null>(null)
+  const holdRef = useRef<number>(0)
 
   const expenseCats = useMemo(
     () => categories.filter((c) => c.type === 'expense' && !c.archived),
@@ -291,6 +294,29 @@ export default function AddPage({
                   ['--tint' as string]: c.color + '1f',
                 }}
                 onClick={() => setCategoryId(c.id)}
+                onPointerDown={() => {
+                  // 长按分类进入编辑，可以改名、换图标或删掉
+                  holdRef.current = window.setTimeout(() => {
+                    holdRef.current = 0
+                    setCatEditor(c)
+                  }, 500)
+                }}
+                onPointerUp={() => {
+                  if (holdRef.current) {
+                    clearTimeout(holdRef.current)
+                    holdRef.current = 0
+                  }
+                }}
+                onPointerLeave={() => {
+                  if (holdRef.current) {
+                    clearTimeout(holdRef.current)
+                    holdRef.current = 0
+                  }
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  setCatEditor(c)
+                }}
               >
                 <span
                   className="box"
@@ -302,6 +328,14 @@ export default function AddPage({
               </button>
             )
           })}
+          <button
+            className="cat-cell add"
+            onClick={() => setCatEditor('new')}
+            aria-label="新建分类"
+          >
+            <span className="box">＋</span>
+            <span className="nm">添加</span>
+          </button>
         </div>
       )}
 
@@ -413,6 +447,20 @@ export default function AddPage({
             完成
           </button>
         </Sheet>
+      )}
+
+      {catEditor && (
+        <CategoryEditor
+          cat={catEditor === 'new' ? null : catEditor}
+          type={mode === 'income' ? 'income' : 'expense'}
+          onClose={() => setCatEditor(null)}
+          onDone={(msg, created) => {
+            toast(msg)
+            setCatEditor(null)
+            // 新建后直接选中它，省得再点一次
+            if (created) setCategoryId(created.id)
+          }}
+        />
       )}
 
       {sheet === 'note' && (

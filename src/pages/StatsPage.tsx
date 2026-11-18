@@ -4,6 +4,7 @@ import { useApp } from '../lib/store'
 import { formatMonth, money, percent } from '../lib/format'
 import Donut from '../components/Donut'
 import TrendChart from '../components/TrendChart'
+import Heatmap from '../components/Heatmap'
 import { IconChevronLeft, IconChevronRight } from '../components/Icons'
 
 type View = 'expense' | 'income'
@@ -155,6 +156,16 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
         </div>
         <div className="card card-pad" style={{ padding: '12px 8px 6px' }}>
           <TrendChart data={trend} height={142} />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>记账打卡</h2>
+          <span className="more">近 19 周</span>
+        </div>
+        <div className="card card-pad">
+          <Heatmap transactions={transactions} />
         </div>
       </section>
 
