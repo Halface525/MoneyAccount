@@ -45,6 +45,44 @@ export function registerBackButton(handler: () => boolean) {
   }
 }
 
+/**
+ * 桌面小组件上的「+」用自定义 scheme（suishouji://add）唤起 App。
+ * 冷启动走 getLaunchUrl，App 已在前台/后台则走 appUrlOpen。
+ * 返回取消监听的函数。
+ */
+export function onQuickAddRequest(handler: (params: { cat?: string; type?: string }) => void) {
+  if (!isNative) return () => {}
+  let disposed = false
+  let remove: (() => void) | undefined
+  const handle = (url?: string | null) => {
+    if (!url || !url.startsWith('suishouji://add')) return
+    let cat: string | undefined
+    let type: string | undefined
+    try {
+      const parsed = new URL(url)
+      cat = parsed.searchParams.get('cat') ?? undefined
+      type = parsed.searchParams.get('type') ?? undefined
+    } catch {
+      // 参数解析失败就按普通「记一笔」处理
+    }
+    handler({ cat, type })
+  }
+  CapApp.getLaunchUrl()
+    .then((res) => {
+      if (!disposed) handle(res?.url)
+    })
+    .catch(() => {})
+  CapApp.addListener('appUrlOpen', (event) => handle(event.url))
+    .then((listener) => {
+      remove = () => listener.remove()
+    })
+    .catch(() => {})
+  return () => {
+    disposed = true
+    remove?.()
+  }
+}
+
 function blobDownload(filename: string, data: string, mime: string) {
   const blob = new Blob([data], { type: mime })
   const url = URL.createObjectURL(blob)

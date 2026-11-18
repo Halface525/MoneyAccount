@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getSetting, setSetting } from '../db'
+import { syncWidget } from './widget'
 import type { Account, Budget, Category, Recurring, Transaction } from '../db/types'
 
 type Theme = 'auto' | 'light' | 'dark'
@@ -82,6 +83,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     applyTheme(t)
     setSetting('theme', t)
   }, [])
+
+  // 账本或主题一变，就把最新的几个数字推给桌面小组件。
+  // 防抖 350ms：连续记账时不必每一笔都跨桥一次。
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void syncWidget(transactions, budgets, theme)
+    }, 350)
+    return () => window.clearTimeout(id)
+  }, [transactions, budgets, theme])
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg)
