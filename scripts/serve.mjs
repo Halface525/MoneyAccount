@@ -117,17 +117,28 @@ if (USE_HTTPS) {
 server.listen(PORT, '0.0.0.0', () => {
   const scheme = USE_HTTPS ? 'https' : 'http'
   console.log(`\n  随手记 已启动（静态目录 dist/）\n`)
-  console.log(`  本机     ${scheme}://localhost:${PORT}`)
-  for (const ip of lanAddresses()) {
-    console.log(`  局域网   ${scheme}://${ip}:${PORT}`)
-  }
+
   if (!USE_HTTPS) {
+    // localhost 本身就是浏览器的“安全上下文”，无需 HTTPS 即可注册 Service Worker
+    console.log(`  本机     http://localhost:${PORT}      ← 电脑上用这个，功能完整`)
+    for (const ip of lanAddresses()) {
+      console.log(`  局域网   http://${ip}:${PORT}`)
+    }
     console.log(
-      '\n  提示：从手机用 http://局域网IP 访问时功能全部正常，但浏览器只在 localhost\n' +
-        '        或 HTTPS 下允许注册 Service Worker，所以那样没有“离线打开”。\n' +
-        '        想装成真正的 App 请用：npm run serve:https\n',
+      '\n  提示：手机用 http://局域网IP 能记账，但浏览器只在 localhost 或 HTTPS 下\n' +
+        '        允许 Service Worker，所以那样没有离线打开、也装不成 App。\n' +
+        '        手机要装成 App 请用：npm run serve:https\n',
     )
   } else {
-    console.log('\n  自签证书：手机首次访问会提示“不安全”，选择继续访问即可。\n')
+    console.log(`  电脑     http://localhost:${PORT}      ← 直接用这个，不会有证书警告`)
+    console.log(`  手机     https://${lanAddresses()[0] ?? '<局域网IP>'}:${PORT}`)
+    for (const ip of lanAddresses().slice(1)) {
+      console.log(`           https://${ip}:${PORT}`)
+    }
+    console.log(
+      '\n  为什么不建议在电脑上开 https://localhost：这是自签证书，浏览器会报\n' +
+        '  ERR_CERT_AUTHORITY_INVALID。localhost 用 http 就已经是安全上下文，\n' +
+        '  离线缓存、添加到桌面全都正常。\n',
+    )
   }
 })
