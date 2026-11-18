@@ -125,7 +125,7 @@ export default function CategoryEditor({
       {/* 图标库没有合适的，仍然可以像以前一样输入任意 emoji */}
       <div className="row" style={{ gap: 10, marginTop: 10, alignItems: 'center' }}>
         <div className="field" style={{ flex: 1, marginBottom: 0 }}>
-          <span className="lbl">自定义 emoji</span>
+          <span className="lbl">自定义</span>
           <input
             value={customIcon}
             onChange={(e) => {
@@ -134,7 +134,7 @@ export default function CategoryEditor({
               setCustomIcon(next)
               if (next) setIcon(next)
             }}
-            placeholder="图标不够？输入任意 emoji，如 🫐"
+            placeholder="输入 emoji"
             maxLength={4}
           />
         </div>
@@ -154,7 +154,7 @@ export default function CategoryEditor({
         </div>
       </div>
       <div className="small muted" style={{ padding: '6px 2px 0', lineHeight: 1.6 }}>
-        上面没有合适的图标，可以直接输入任意 emoji，会按原样显示。
+        图标库没有合适的，可以直接输入 emoji。
       </div>
 
       <button className="btn btn-primary btn-block" style={{ marginTop: 14 }} onClick={save}>
