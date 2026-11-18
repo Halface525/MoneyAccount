@@ -1,8 +1,28 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db } from '../db'
 import { useApp } from '../lib/store'
 import { saveTextFile, openExternal } from '../lib/native'
 import { checkUpdate, RELEASES_URL } from '../lib/update'
+import {
+  buildBackup,
+  backupToCsv,
+  parseBackup,
+  applyBackup,
+} from '../lib/backup'
+import {
+  FILE_PATH_HINT,
+  getLastSave,
+  onSaved,
+  flushSave,
+  listArchives,
+  readArchive,
+  currentDirLabel,
+  hasFileAccess,
+  requestFileAccess,
+  retryAfterPermission,
+  isNativePlatform,
+  type SaveState,
+} from '../lib/datafile'
 import Sheet from '../components/Sheet'
 import {
   IconChevronLeft,
@@ -11,18 +31,6 @@ import {
   IconTrash,
   IconUpload,
 } from '../components/Icons'
-import type { Account, Budget, Category, Recurring, Transaction } from '../db/types'
-
-type Backup = {
-  app: string
-  version: number
-  exportedAt: string
-  transactions: Transaction[]
-  accounts: Account[]
-  categories: Category[]
-  budgets: Budget[]
-  recurring: Recurring[]
-}
 
 export default function SettingsPage({
   back,
@@ -37,6 +45,21 @@ export default function SettingsPage({
   const [importing, setImporting] = useState(false)
   const [checking, setChecking] = useState(false)
   const [update, setUpdate] = useState<null | { latest: string; hasUpdate: boolean }>(null)
+  const [saveState, setSaveState] = useState<SaveState | null>(getLastSave())
+  const [archives, setArchives] = useState<{ name: string; size: number; mtime: number }[]>([])
+  const [showArchives, setShowArchives] = useState(false)
+  const [dirLabel, setDirLabel] = useState(FILE_PATH_HINT)
+  const [access, setAccess] = useState(true)
+
+  useEffect(() => {
+    const off = onSaved(setSaveState)
+    void listArchives().then(setArchives)
+    if (isNativePlatform) {
+      void currentDirLabel().then(setDirLabel).catch(() => {})
+      void hasFileAccess().then(setAccess)
+    }
+    return off
+  }, [])
 
   const onCheckUpdate = async () => {
     if (checking) return
@@ -54,17 +77,16 @@ export default function SettingsPage({
     }
   }
 
+  /** 立刻把当前数据写进手机文件，并刷新界面上的状态 */
+  const saveNow = async () => {
+    await flushSave()
+    setSaveState(getLastSave())
+    setArchives(await listArchives())
+    toast('已保存到数据文件')
+  }
+
   const exportJson = async () => {
-    const data: Backup = {
-      app: 'money-account',
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      transactions: await db.transactions.toArray(),
-      accounts: await db.accounts.toArray(),
-      categories: await db.categories.toArray(),
-      budgets: await db.budgets.toArray(),
-      recurring: await db.recurring.toArray(),
-    }
+    const data = await buildBackup()
     await saveTextFile(
       `随手记备份-${new Date().toISOString().slice(0, 10)}.json`,
       JSON.stringify(data, null, 2),
@@ -74,23 +96,10 @@ export default function SettingsPage({
   }
 
   const exportCsv = async () => {
-    const txs = await db.transactions.toArray()
-    const cats = await db.categories.toArray()
-    const accs = await db.accounts.toArray()
-    const cm = new Map(cats.map((c) => [c.id, c.name]))
-    const am = new Map(accs.map((a) => [a.id, a.name]))
-    const header = '日期,时间,类型,分类,金额,账户,备注\n'
-    const rows = txs
-      .sort((a, b) => (a.date < b.date ? -1 : 1))
-      .map((t) => {
-        const type = t.type === 'expense' ? '支出' : t.type === 'income' ? '收入' : '转账'
-        const note = (t.note ?? '').replace(/,/g, '，')
-        return `${t.date},${t.time ?? ''},${type},${cm.get(t.categoryId) ?? ''},${(t.amount / 100).toFixed(2)},${am.get(t.accountId) ?? ''},${note}`
-      })
-      .join('\n')
+    const data = await buildBackup()
     await saveTextFile(
       `随手记明细-${new Date().toISOString().slice(0, 10)}.csv`,
-      '\ufeff' + header + rows,
+      backupToCsv(data),
       'text/csv;charset=utf-8',
     )
     toast('已导出 CSV')
@@ -100,27 +109,13 @@ export default function SettingsPage({
     try {
       setImporting(true)
       const text = await file.text()
-      const data = JSON.parse(text) as Backup
-      if (data.app !== 'money-account' || !Array.isArray(data.transactions)) {
+      const data = parseBackup(text)
+      if (!data) {
         toast('文件格式不正确')
         return
       }
-      await db.transaction('rw', [db.transactions, db.accounts, db.categories, db.budgets, db.recurring], async () => {
-        if (data.categories?.length) {
-          await db.categories.clear()
-          await db.categories.bulkPut(data.categories)
-        }
-        if (data.accounts?.length) {
-          await db.accounts.clear()
-          await db.accounts.bulkPut(data.accounts)
-        }
-        await db.transactions.clear()
-        if (data.transactions.length) await db.transactions.bulkPut(data.transactions)
-        await db.budgets.clear()
-        if (data.budgets?.length) await db.budgets.bulkPut(data.budgets)
-        await db.recurring.clear()
-        if (data.recurring?.length) await db.recurring.bulkPut(data.recurring)
-      })
+      await applyBackup(data)
+      await flushSave()
       toast(`已恢复 ${data.transactions.length} 笔记录`)
     } catch {
       toast('导入失败，请检查文件')
@@ -129,8 +124,21 @@ export default function SettingsPage({
     }
   }
 
+  const restoreArchive = async (name: string) => {
+    const data = await readArchive(name)
+    if (!data) {
+      toast('这份留档读不出来')
+      return
+    }
+    await applyBackup(data)
+    await flushSave()
+    setShowArchives(false)
+    toast(`已回滚到 ${name.replace('.json', '')} 的数据`)
+  }
+
   const clearAll = async () => {
     await db.transactions.clear()
+    await flushSave()
     setConfirmClear(false)
     toast('已清空全部记账')
   }
@@ -170,6 +178,89 @@ export default function SettingsPage({
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>数据文件</h2>
+        </div>
+        <div className="card card-pad">
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 15 }}>
+                {saveState ? `已存 ${saveState.count} 笔` : '还没有写入文件'}
+              </div>
+              <div className="small muted" style={{ marginTop: 3 }}>
+                {saveState
+                  ? `上次保存 ${new Date(saveState.at).toLocaleString('zh-CN', { hour12: false })}`
+                  : '记一笔后会自动写入'}
+              </div>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={saveNow}>
+              立即保存
+            </button>
+          </div>
+          <div
+            className="mono small"
+            style={{
+              marginTop: 12,
+              padding: '9px 11px',
+              borderRadius: 12,
+              background: 'var(--surface-3)',
+              color: 'var(--text-2)',
+              wordBreak: 'break-all',
+              lineHeight: 1.5,
+            }}
+          >
+            {dirLabel}
+          </div>
+          <div className="small muted" style={{ marginTop: 8, lineHeight: 1.6 }}>
+            每次记账都会自动写进这个文件；换手机、清应用数据都不会丢。
+            手机上用「文件」App 就能看到，插电脑也能直接拷走。
+          </div>
+          {isNativePlatform && !access && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: '11px 12px',
+                borderRadius: 13,
+                background: 'color-mix(in srgb, var(--negative) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--negative) 30%, transparent)',
+              }}
+            >
+              <div style={{ fontSize: 13.5, color: 'var(--negative)', fontWeight: 600 }}>
+                还没允许访问文件
+              </div>
+              <div className="small muted" style={{ marginTop: 4, lineHeight: 1.6 }}>
+                没有这个权限，账本只能存在应用内部，清除数据后会读不回来。
+              </div>
+              <button
+                className="btn btn-primary btn-sm"
+                style={{ marginTop: 9 }}
+                onClick={async () => {
+                  await requestFileAccess()
+                  const ok = await hasFileAccess()
+                  if (ok) await retryAfterPermission()
+                  setAccess(ok)
+                  setDirLabel(await currentDirLabel())
+                  toast(ok ? '已允许访问文件' : '请在系统设置里手动开启')
+                }}
+              >
+                去开启
+              </button>
+            </div>
+          )}
+        </div>
+
+        <button className="list-row card" style={{ marginTop: 10 }} onClick={async () => {
+          setArchives(await listArchives())
+          setShowArchives(true)
+        }}>
+          <span style={{ color: 'var(--text-2)' }}><IconDownload size={17} /></span>
+          <span className="lbl">历史留档</span>
+          <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>{archives.length} 份</span>
+          <IconChevronRight size={16} className="chev" />
+        </button>
       </section>
 
       <section className="section">
@@ -254,7 +345,9 @@ export default function SettingsPage({
           </button>
           <div className="list-row">
             <span className="lbl">数据存储</span>
-            <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>本机 IndexedDB</span>
+            <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
+              {isNativePlatform ? '手机文件' : '本机 IndexedDB'}
+            </span>
           </div>
           <div className="list-row">
             <span className="lbl">云端同步</span>
@@ -262,6 +355,31 @@ export default function SettingsPage({
           </div>
         </div>
       </section>
+
+      {showArchives && (
+        <Sheet title="历史留档" onClose={() => setShowArchives(false)}>
+          <p style={{ color: 'var(--text-2)', fontSize: 13, padding: '0 4px 12px', lineHeight: 1.6 }}>
+            每天第一次保存时的自动快照，回滚会覆盖当前数据。
+          </p>
+          {archives.length === 0 ? (
+            <div className="small muted" style={{ padding: '8px 4px 20px' }}>
+              还没有留档，明天开始就有了。
+            </div>
+          ) : (
+            <div className="card" style={{ overflow: 'hidden', maxHeight: 360, overflowY: 'auto' }}>
+              {archives.map((a) => (
+                <button key={a.name} className="list-row" onClick={() => restoreArchive(a.name)}>
+                  <span className="lbl">{a.name.replace('.json', '')}</span>
+                  <span className="val" style={{ fontFamily: 'var(--font-sans)' }}>
+                    {(a.size / 1024).toFixed(0)} KB
+                  </span>
+                  <IconChevronRight size={16} className="chev" />
+                </button>
+              ))}
+            </div>
+          )}
+        </Sheet>
+      )}
 
       {update && (
         <Sheet title="发现新版本" onClose={() => setUpdate(null)}>
