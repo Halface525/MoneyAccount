@@ -6,10 +6,28 @@
  */
 import { Capacitor } from '@capacitor/core'
 import { App as CapApp } from '@capacitor/app'
+import { Haptics, ImpactStyle } from '@capacitor/haptics'
 import { StatusBar, Style } from '@capacitor/status-bar'
 
 export const isNative = Capacitor.isNativePlatform()
 export const platform = Capacitor.getPlatform()
+
+/** 轻触反馈：保存成功这类关键时刻用，浏览器里退化成短震动 */
+export async function lightTap() {
+  if (!isNative) {
+    try {
+      navigator.vibrate?.(8)
+    } catch {
+      // 浏览器不支持就算了
+    }
+    return
+  }
+  try {
+    await Haptics.impact({ style: ImpactStyle.Light })
+  } catch {
+    // 设备不支持触感反馈时静默忽略
+  }
+}
 
 /** 让状态栏跟随应用主题（浅色主题配深色文字，反之亦然） */
 export function syncStatusBar(resolved: 'light' | 'dark') {

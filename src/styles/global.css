@@ -36,7 +36,7 @@
   --hero-glass-line: rgba(255, 255, 255, 0.5);
   --radius-sm: 12px;
   --radius: 18px;
-  --radius-lg: 24px;
+  --radius-lg: 22px;
   --radius-xl: 30px;
   --nav-h: 60px;
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -236,18 +236,18 @@ textarea {
 }
 
 .card-pad {
-  padding: 16px;
+  padding: 15px;
 }
 
 .section {
-  margin-top: 20px;
+  margin-top: 17px;
 }
 
 .section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 0 4px 8px;
+  padding: 0 4px 6px;
 }
 
 .section-head h2 {
@@ -557,9 +557,9 @@ textarea {
 /* ---------- Account strip ---------- */
 .acc-strip {
   display: flex;
-  gap: 9px;
+  gap: 8px;
   overflow-x: auto;
-  padding: 2px 2px 6px;
+  padding: 2px 2px 4px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -571,10 +571,10 @@ textarea {
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 16px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.15s;
 }
@@ -801,15 +801,18 @@ textarea {
 }
 
 .tab .em {
-  font-size: 18px;
+  width: 46px;
+  height: 28px;
+  border-radius: 99px;
   line-height: 1;
   display: grid;
   place-items: center;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease;
 }
 
 .tab.active .em {
-  transform: translateY(-2px) scale(1.06);
+  background: var(--accent-soft);
+  transform: translateY(-1px) scale(1.03);
 }
 
 .tab-add {
@@ -1134,6 +1137,52 @@ textarea {
   box-shadow: none;
 }
 
+/* ---------- 保存成功反馈 ---------- */
+.save-success {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(12, 10, 8, 0.18);
+  backdrop-filter: blur(2px);
+  animation: fade-in 0.16s ease-out;
+}
+
+.save-check {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(148deg, #f7c46b 0%, #e79a3f 55%, #d0792a 100%);
+  color: #3a2410;
+  box-shadow: 0 18px 40px -18px rgba(208, 121, 42, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: check-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.save-text {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(0.55);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* ---------- Sheet ---------- */
 .sheet-mask {
   position: fixed;
@@ -1141,7 +1190,7 @@ textarea {
   background: rgba(12, 10, 8, 0.42);
   backdrop-filter: blur(3px);
   z-index: 60;
-  animation: fade-in 0.2s;
+  animation: fade-in 0.18s;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1157,12 +1206,12 @@ textarea {
   width: 100%;
   max-width: 520px;
   background: var(--bg);
-  border-radius: 24px 24px 0 0;
+  border-radius: 22px 22px 0 0;
   padding: 8px 16px calc(16px + var(--safe-b));
   max-height: 88vh;
   display: flex;
   flex-direction: column;
-  animation: sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: sheet-up 0.26s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: var(--shadow-lg);
 }
 
@@ -1323,7 +1372,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 0;
+  padding: 8px 0;
 }
 
 .bar-row .nm {
@@ -1488,14 +1537,14 @@ textarea {
 .acc-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .acc-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 13px 15px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);

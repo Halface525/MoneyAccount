@@ -4,7 +4,7 @@ import { useApp } from '../lib/store'
 import { uid } from '../lib/format'
 import Sheet from './Sheet'
 import { IconTrash } from './Icons'
-import { AppIcon } from '../lib/appIcons'
+import { AppIcon, isIconKey } from '../lib/appIcons'
 import { PICKER_ICON_KEYS } from '../db/iconKeys'
 import type { Category } from '../db/types'
 
@@ -27,6 +27,8 @@ export default function CategoryEditor({
   const { categories, toast } = useApp()
   const [name, setName] = useState(cat?.name ?? '')
   const [icon, setIcon] = useState(cat?.icon ?? 'package')
+  // 老分类可能是用户自己输入的 emoji，编辑时把它放回自定义输入框
+  const [customIcon, setCustomIcon] = useState(isIconKey(cat?.icon) ? '' : (cat?.icon ?? ''))
   const [color, setColor] = useState(cat?.color ?? '#D99A3D')
   const [confirmDel, setConfirmDel] = useState(false)
   const [usedCount, setUsedCount] = useState(0)
@@ -106,7 +108,10 @@ export default function CategoryEditor({
           <button
             key={k}
             className={'icon-pick' + (icon === k ? ' active' : '')}
-            onClick={() => setIcon(k)}
+            onClick={() => {
+              setIcon(k)
+              setCustomIcon('')
+            }}
             style={{
               background: icon === k ? color + '2a' : 'var(--surface-3)',
               borderColor: icon === k ? color : 'transparent',
@@ -117,8 +122,39 @@ export default function CategoryEditor({
           </button>
         ))}
       </div>
-      <div className="small muted" style={{ padding: '8px 2px 0', lineHeight: 1.6 }}>
-        图标来自 Lucide，和底部导航、设置页是同一套线条风格。
+      {/* 图标库没有合适的，仍然可以像以前一样输入任意 emoji */}
+      <div className="row" style={{ gap: 10, marginTop: 10, alignItems: 'center' }}>
+        <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+          <span className="lbl">自定义 emoji</span>
+          <input
+            value={customIcon}
+            onChange={(e) => {
+              // 只留第一个字形：emoji 有组合字符，得按字形切而不是按码点
+              const next = firstGlyph(e.target.value)
+              setCustomIcon(next)
+              if (next) setIcon(next)
+            }}
+            placeholder="图标不够？输入任意 emoji，如 🫐"
+            maxLength={4}
+          />
+        </div>
+        <div
+          className="cat-icon"
+          style={{
+            width: 44,
+            height: 44,
+            background: color + '1f',
+            border: customIcon && customIcon === icon
+              ? `1.5px solid ${color}`
+              : '1.5px solid transparent',
+            flex: 'none',
+          }}
+        >
+          <AppIcon name={icon} size={20} color={color} />
+        </div>
+      </div>
+      <div className="small muted" style={{ padding: '6px 2px 0', lineHeight: 1.6 }}>
+        上面没有合适的图标，可以直接输入任意 emoji，会按原样显示。
       </div>
 
       <button className="btn btn-primary btn-block" style={{ marginTop: 14 }} onClick={save}>
@@ -162,4 +198,17 @@ export default function CategoryEditor({
       <div style={{ height: 8 }} />
     </Sheet>
   )
+}
+
+/** 取字符串的第一个「字形」（兼容带修饰符、ZWJ 组合的 emoji） */
+function firstGlyph(input: string): string {
+  const text = input.replace(/\s/g, '')
+  if (!text) return ''
+  const Seg = (Intl as unknown as { Segmenter?: typeof Intl.Segmenter }).Segmenter
+  if (Seg) {
+    const it = new Seg('zh', { granularity: 'grapheme' }).segment(text)[Symbol.iterator]()
+    const first = it.next()
+    return first.done ? '' : first.value.segment
+  }
+  return Array.from(text)[0] ?? ''
 }
