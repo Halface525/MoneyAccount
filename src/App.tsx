@@ -13,6 +13,7 @@ import AccountsPage from './pages/AccountsPage'
 import RecurringPage from './pages/RecurringPage'
 import SettingsPage from './pages/SettingsPage'
 import CategoriesPage from './pages/CategoriesPage'
+import FileAccessGate from './components/FileAccessGate'
 
 const TABS = ['home', 'list', 'stats', 'mine']
 
@@ -90,6 +91,7 @@ export default function App() {
 
   return (
     <div className="app-frame">
+      <FileAccessGate />
       {content}
       {showTab && <TabBar page={page} navigate={navigate} />}
       {page === 'add' && (
