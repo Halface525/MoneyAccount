@@ -108,7 +108,13 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
           <button onClick={() => shiftMonth(-1)} aria-label="上个月">
             <IconChevronLeft size={17} />
           </button>
-          <span className="m">{formatMonth(month)}</span>
+          <button
+            className="m m-link"
+            onClick={() => navigate('/calendar')}
+            aria-label="打开记账日历"
+          >
+            {formatMonth(month)}
+          </button>
           <button
             onClick={() => shiftMonth(1)}
             disabled={isCurrent}

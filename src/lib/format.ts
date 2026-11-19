@@ -104,3 +104,21 @@ export function uid(prefix = ''): string {
 export function daysInMonth(month: string): number {
   return dayjs(month + '-01').daysInMonth()
 }
+
+/**
+ * 月历格子里用的紧凑金额：位数不够时自动省掉小数，再不够就用「万」。
+ * 12450 -> '124.5'，1234567 -> '1.2w'，0 -> ''
+ * 常规列表和详情页仍然用 money()，只有面积很小的格子才用它。
+ */
+export function compactMoney(fen: number): string {
+  if (!Number.isFinite(fen) || fen <= 0) return ''
+  const yuan = Math.abs(fen) / 100
+  const sign = fen < 0 ? '-' : ''
+  if (yuan >= 10000) {
+    const w = yuan / 10000
+    return sign + (w >= 10 ? Math.round(w) : Math.round(w * 10) / 10) + 'w'
+  }
+  if (yuan >= 1000) return sign + Math.round(yuan)
+  if (yuan >= 100) return sign + (Math.round(yuan * 10) / 10)
+  return sign + (Math.round(yuan * 100) / 100)
+}

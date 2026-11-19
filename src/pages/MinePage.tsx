@@ -38,6 +38,13 @@ export default function MinePage({ navigate }: { navigate: (to: string) => void 
       color: '#D97F35',
     },
     {
+      icon: '🗓️',
+      label: '记账日历',
+      value: '按月看每天',
+      to: '/calendar',
+      color: '#DFA84F',
+    },
+    {
       icon: <IconWallet size={18} />,
       label: '账户管理',
       value: `${accounts.length} 个账户`,

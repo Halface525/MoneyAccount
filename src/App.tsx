@@ -14,6 +14,7 @@ import RecurringPage from './pages/RecurringPage'
 import SettingsPage from './pages/SettingsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import ChatPage from './pages/ChatPage'
+import CalendarPage from './pages/CalendarPage'
 import FileAccessGate from './components/FileAccessGate'
 
 const TABS = ['home', 'list', 'stats', 'mine']
@@ -98,6 +99,9 @@ export default function App() {
       break
     case 'chat':
       content = <ChatPage back={back} navigate={navigate} />
+      break
+    case 'calendar':
+      content = <CalendarPage back={back} />
       break
     case 'add':
       content = null
