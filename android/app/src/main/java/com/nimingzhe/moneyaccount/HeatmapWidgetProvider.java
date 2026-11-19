@@ -152,7 +152,11 @@ public class HeatmapWidgetProvider extends AppWidgetProvider {
         Canvas canvas = new Canvas(bitmap);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        int track = dark ? 0xFF3A2E23 : 0xFFF0E4D4;
+        // 空格子用卡片里最浅的一档底色，有记录按比例往主题色上兑。
+        // 注意不能画半透明色：Bitmap 本身是透明的，半透明叠上去会和空格子
+        // 融成同一片浅色（浅色主题下 l1 与 track 亮度几乎相等，等于看不出
+        // 那天记过账）。这里先算出不透明的混合结果再画。
+        int track = dark ? 0xFF332920 : 0xFFF6ECDF;
         int base = dark ? 0xFFF0B45C : 0xFFD97F35;
 
         for (int r = 0; r < rows; r++) {
@@ -162,9 +166,9 @@ public class HeatmapWidgetProvider extends AppWidgetProvider {
 
                 int color;
                 if (value == 0) color = track;
-                else if (value == 1) color = withAlpha(base, 0.30f);
-                else if (value == 2) color = withAlpha(base, 0.55f);
-                else if (value == 3) color = withAlpha(base, 0.78f);
+                else if (value == 1) color = blend(track, base, 0.30f);
+                else if (value == 2) color = blend(track, base, 0.55f);
+                else if (value == 3) color = blend(track, base, 0.80f);
                 else color = base;
 
                 paint.setColor(color);
@@ -177,12 +181,13 @@ public class HeatmapWidgetProvider extends AppWidgetProvider {
         return bitmap;
     }
 
-    private static int withAlpha(int color, float alpha) {
+    /** 把 base 按 alpha 兑进 track，得到不透明结果 */
+    private static int blend(int track, int base, float alpha) {
         return Color.argb(
-            Math.round(255 * alpha),
-            Color.red(color),
-            Color.green(color),
-            Color.blue(color)
+            255,
+            Math.round(Color.red(track) * (1 - alpha) + Color.red(base) * alpha),
+            Math.round(Color.green(track) * (1 - alpha) + Color.green(base) * alpha),
+            Math.round(Color.blue(track) * (1 - alpha) + Color.blue(base) * alpha)
         );
     }
 }
