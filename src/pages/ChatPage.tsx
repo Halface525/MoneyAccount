@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import dayjs from 'dayjs'
 import { db } from '../db'
 import { useApp } from '../lib/store'
@@ -102,9 +102,60 @@ export default function ChatPage({
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => saveMessages(msgs), [msgs])
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
+
+  /* 打开页面就停在最新一条，而不是从头开始。
+     用 layout effect + 无动画，免得先闪一下顶部再滑下来；
+     之后来新消息才用平滑滚动。
+     注意：App 在切页时会 window.scrollTo(0,0)，子组件的 effect 先跑，
+     所以这里必须等一帧再滚，否则会被父组件的滚动重置掉。 */
+  const firstScroll = useRef(true)
+  useLayoutEffect(() => {
+    const jump = () => {
+      const el = bottomRef.current
+      if (!el) return
+      if (firstScroll.current) {
+        const y = window.scrollY + el.getBoundingClientRect().bottom - window.innerHeight
+        window.scrollTo(0, Math.max(0, y + 8))
+        firstScroll.current = false
+      } else {
+        el.scrollIntoView({ block: 'end', behavior: 'smooth' })
+      }
+    }
+    jump()
+    const raf = requestAnimationFrame(jump)
+    const timer = window.setTimeout(jump, 60)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+    }
   }, [msgs.length, thinking])
+
+  /* 系统键盘弹起时把可视区高度记下来：
+     卡片里的备注框要能滚到键盘上方，输入条也要跟着抬起来。 */
+  const [kbPad, setKbPad] = useState(0)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => {
+      const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      setKbPad(gap > 80 ? gap : 0)
+    }
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
+
+  /** 点开备注框时把它顶到键盘上方，别被挡住 */
+  const revealField = (e: { currentTarget: HTMLElement }) => {
+    const el = e.currentTarget
+    window.setTimeout(() => {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 280)
+  }
   useEffect(() => {
     void loadAiConfig().then(setCfg)
     void speechAvailable().then(setMicOk)
@@ -422,7 +473,7 @@ export default function ChatPage({
   }, [editing, msgs])
 
   return (
-    <div className="page chat-page">
+    <div className="page chat-page" style={{ paddingBottom: kbPad ? kbPad + 108 : undefined }}>
       <header className="topbar">
         <div className="row" style={{ gap: 4, alignItems: 'center' }}>
           <button className="icon-btn" onClick={back} aria-label="返回">
@@ -525,6 +576,7 @@ export default function ChatPage({
                         className="draft-note"
                         placeholder="+ 备注，直接写"
                         value={d.note ?? ''}
+                        onFocus={revealField}
                         onChange={(e) =>
                           patchDraft(m.id, d.key, { note: e.target.value || undefined })
                         }
@@ -612,7 +664,7 @@ export default function ChatPage({
         </div>
       )}
 
-      <div className="chat-input-bar">
+      <div className="chat-input-bar" style={kbPad ? { bottom: kbPad } : undefined}>
         {micOk && (
           <button
             className={'chat-mic' + (listening ? ' on' : '')}

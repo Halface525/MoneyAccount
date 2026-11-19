@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { useHashRoute, parseRoute } from './lib/router'
 import { initNative, onQuickAddRequest, registerBackButton, syncStatusBar } from './lib/native'
 import { useApp } from './lib/store'
@@ -13,9 +13,12 @@ import AccountsPage from './pages/AccountsPage'
 import RecurringPage from './pages/RecurringPage'
 import SettingsPage from './pages/SettingsPage'
 import CategoriesPage from './pages/CategoriesPage'
-import ChatPage from './pages/ChatPage'
 import CalendarPage from './pages/CalendarPage'
 import FileAccessGate from './components/FileAccessGate'
+
+// 对话页带着本地解析规则和 AI 调用，是最大的一块（约 140KB），
+// 但首屏用不到它。拆出去按需加载，冷启动少解析这一坨。
+const ChatPage = lazy(() => import('./pages/ChatPage'))
 
 const TABS = ['home', 'list', 'stats', 'mine']
 
@@ -26,7 +29,8 @@ export default function App() {
   const { theme } = useApp()
 
   useEffect(() => {
-    window.scrollTo(0, 0)
+    // 对话页自己管滚动（进来要停在最新一条），别在这里把它拉回顶部
+    if (page !== 'chat') window.scrollTo(0, 0)
     document.body.style.overflow = page === 'add' ? 'hidden' : ''
   }, [route, page])
 
@@ -98,7 +102,11 @@ export default function App() {
       content = <CategoriesPage back={back} />
       break
     case 'chat':
-      content = <ChatPage back={back} navigate={navigate} />
+      content = (
+        <Suspense fallback={<div className="page"><div className="skeleton-load" /></div>}>
+          <ChatPage back={back} navigate={navigate} />
+        </Suspense>
+      )
       break
     case 'calendar':
       content = <CalendarPage back={back} />

@@ -86,6 +86,17 @@ export function isWriteBlocked() {
   return writeBlocked
 }
 
+/**
+ * 启动时「读文件回填」这段时间里，用户如果已经动手改了数据，
+ * 就不能再拿文件去覆盖他刚做的事。这两个标志用来守住这个顺序。
+ */
+let bootRestoring = false
+let changedDuringRestore = false
+
+export function isRestoring() {
+  return bootRestoring
+}
+
 /** Android 10（含）以下写公共目录要存储权限，先申请一次；失败就算了，会自动降级。 */
 let permissionAsked = false
 async function askStoragePermission() {
@@ -277,7 +288,9 @@ async function doSave() {
   try {
     const data: Backup = await buildBackup()
     await ensureDir(DATA_DIR)
-    const json = JSON.stringify(data, null, 2)
+    // 不缩进：3000 笔时带缩进的文件约 880KB，压成一行约 340KB，
+    // 解析和复制都更快。备份仍然是合法 JSON，人眼靠格式化工具也能看。
+    const json = JSON.stringify(data)
     await writeText(`${DATA_DIR}/${MAIN_FILE}`, json)
 
     // 按天留档：同一天重复保存会覆盖当天那一份
@@ -304,6 +317,8 @@ async function doSave() {
 export function scheduleSave() {
   if (!isNativePlatform) return
   markLocalChange()
+  // 还在从文件回填的阶段用户就改了东西：记下来，回填时放弃覆盖
+  if (bootRestoring) changedDuringRestore = true
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => {
     saveTimer = null
@@ -355,6 +370,16 @@ export async function restoreFromFile(): Promise<{ count: number; savedAt: strin
     return null
   }
   writeBlocked = false
+  bootRestoring = true
+  changedDuringRestore = false
+  try {
+    return await restoreInner()
+  } finally {
+    bootRestoring = false
+  }
+}
+
+async function restoreInner(): Promise<{ count: number; savedAt: string } | null> {
   const path = `${DATA_DIR}/${MAIN_FILE}`
   if (!(await fileExists(path))) return null
   const text = await readText(path)
@@ -379,6 +404,12 @@ export async function restoreFromFile(): Promise<{ count: number; savedAt: strin
   if (localCount > 0 && fileTime > 0 && fileTime < lastLocalChange()) {
     console.warn('[datafile] 文件比本地数据旧，以本地为准')
     await flushSave()
+    return null
+  }
+
+  // 回填期间用户已经改过数据（哪怕只有一笔），就以他改的为准，不要被文件盖掉
+  if (changedDuringRestore) {
+    console.warn('[datafile] 回填期间有新写入，放弃用文件覆盖')
     return null
   }
 

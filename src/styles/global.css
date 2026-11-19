@@ -2993,3 +2993,26 @@ textarea {
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* 按需加载的分块还没到时占位，别让页面白一下 */
+.skeleton-load {
+  height: 40vh;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    100deg,
+    var(--surface-2) 30%,
+    var(--surface-3) 50%,
+    var(--surface-2) 70%
+  );
+  background-size: 240% 100%;
+  animation: skeleton-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes skeleton-slide {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
