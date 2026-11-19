@@ -1,21 +1,10 @@
 import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useApp } from '../lib/store'
-import { compactMoney, formatMonth, money, weekdayLabel } from '../lib/format'
-import { lunarLabel } from '../lib/lunar'
+import { formatMonth, money, weekdayLabel } from '../lib/format'
+import MonthCalendar from '../components/MonthCalendar'
 import TransactionRow from '../components/TransactionRow'
 import { IconChevronLeft, IconChevronRight } from '../components/Icons'
-
-type Cell = {
-  date: string
-  day: number
-  inMonth: boolean
-  expense: number
-  income: number
-  count: number
-}
-
-const WEEK_HEAD = ['日', '一', '二', '三', '四', '五', '六']
 
 /**
  * 记账日历：一月一屏，每格写当天的支出/收入，点开看那天的明细。
@@ -26,60 +15,24 @@ export default function CalendarPage({ back }: { back: () => void }) {
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'))
   const [picked, setPicked] = useState<string | null>(null)
 
-  const today = dayjs().format('YYYY-MM-DD')
   const isCurrent = month === dayjs().format('YYYY-MM')
-
-  const cells = useMemo<Cell[]>(() => {
-    const first = dayjs(month + '-01')
-    const days = first.daysInMonth()
-    // 前面补上个月末尾，让 1 号落在正确的星期列
-    const lead = first.day()
-    const start = first.subtract(lead, 'day')
-    const total = Math.ceil((lead + days) / 7) * 7
-
-    const byDay = new Map<string, { expense: number; income: number; count: number }>()
-    for (const t of transactions) {
-      if (!t.date.startsWith(month)) continue
-      const cur = byDay.get(t.date) ?? { expense: 0, income: 0, count: 0 }
-      if (t.type === 'expense') cur.expense += t.amount
-      if (t.type === 'income') cur.income += t.amount
-      cur.count += 1
-      byDay.set(t.date, cur)
-    }
-
-    return Array.from({ length: total }, (_, i) => {
-      const d = start.add(i, 'day')
-      const key = d.format('YYYY-MM-DD')
-      const hit = byDay.get(key)
-      return {
-        date: key,
-        day: d.date(),
-        inMonth: d.format('YYYY-MM') === month,
-        expense: hit?.expense ?? 0,
-        income: hit?.income ?? 0,
-        count: hit?.count ?? 0,
-      }
-    })
-  }, [transactions, month])
 
   const summary = useMemo(() => {
     let expense = 0
     let income = 0
     let days = 0
-    for (const c of cells) {
-      if (!c.inMonth) continue
-      expense += c.expense
-      income += c.income
-      if (c.count > 0) days += 1
+    const seen = new Set<string>()
+    for (const t of transactions) {
+      if (!t.date.startsWith(month)) continue
+      if (t.type === 'expense') expense += t.amount
+      if (t.type === 'income') income += t.amount
+      if (!seen.has(t.date)) {
+        seen.add(t.date)
+        days += 1
+      }
     }
     return { expense, income, days }
-  }, [cells])
-
-  // 当月最大单日支出，用来给有账的日子加深度
-  const maxExpense = useMemo(
-    () => Math.max(1, ...cells.filter((c) => c.inMonth).map((c) => c.expense)),
-    [cells],
-  )
+  }, [transactions, month])
 
   const pickedTx = useMemo(() => {
     if (!picked) return []
@@ -118,49 +71,12 @@ export default function CalendarPage({ back }: { back: () => void }) {
         </div>
       </header>
 
-      <div className="card cal-card">
-        <div className="cal-head">
-          {WEEK_HEAD.map((w) => (
-            <span key={w}>{w}</span>
-          ))}
-        </div>
-
-        <div className="cal-grid">
-          {cells.map((c) => {
-            const isToday = c.date === today
-            const lv = c.expense > 0 ? Math.max(1, Math.ceil((c.expense / maxExpense) * 3)) : 0
-            return (
-              <button
-                key={c.date}
-                className={
-                  'cal-cell' +
-                  (c.inMonth ? '' : ' out') +
-                  (isToday ? ' today' : '') +
-                  (picked === c.date ? ' picked' : '') +
-                  (c.count > 0 ? ' has' : '') +
-                  (lv ? ' l' + lv : '')
-                }
-                onClick={() => setPicked(picked === c.date ? null : c.date)}
-              >
-                <span className="d">{c.day}</span>
-                <span className="l">{c.inMonth ? lunarLabel(c.date) : ''}</span>
-                <span className="e">{compactMoney(c.expense)}</span>
-                <span className="i">{compactMoney(c.income)}</span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="cal-legend">
-          <span>
-            <i className="k-e" />支出
-          </span>
-          <span>
-            <i className="k-i" />收入
-          </span>
-          <span className="muted">点某天看明细</span>
-        </div>
-      </div>
+      <MonthCalendar
+        month={month}
+        transactions={transactions}
+        picked={picked}
+        onPick={(d) => setPicked(picked === d ? null : d)}
+      />
 
       {picked && (
         <section className="section">

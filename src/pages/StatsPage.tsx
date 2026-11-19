@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useApp } from '../lib/store'
-import { formatMonth, money, moneySigned, percent } from '../lib/format'
+import { formatMonth, money, moneySigned, percent, weekdayLabel } from '../lib/format'
 import Donut from '../components/Donut'
 import TrendChart from '../components/TrendChart'
 import Heatmap from '../components/Heatmap'
+import MonthCalendar from '../components/MonthCalendar'
+import TransactionRow from '../components/TransactionRow'
 import { IconChevronLeft, IconChevronRight } from '../components/Icons'
 
 type View = 'expense' | 'income'
@@ -14,6 +16,7 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
   const [month, setMonth] = useState(dayjs().format('YYYY-MM'))
   const [view, setView] = useState<View>('expense')
   const [trendMode, setTrendMode] = useState<'6m' | '30d'>('6m')
+  const [picked, setPicked] = useState<string | null>(null)
 
   const isCurrent = month === dayjs().format('YYYY-MM')
 
@@ -101,8 +104,24 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
   }, [monthTx, month])
   const dailyMax = Math.max(1, ...dailyBars)
 
-  const shiftMonth = (d: number) =>
+  const shiftMonth = (d: number) => {
     setMonth(dayjs(month + '-01').add(d, 'month').format('YYYY-MM'))
+    setPicked(null)
+  }
+
+  // 本月有几天记过账，写在日历标题右边
+  const activeDays = useMemo(() => {
+    const seen = new Set<string>()
+    monthTx.forEach((t) => seen.add(t.date))
+    return seen.size
+  }, [monthTx])
+
+  const pickedTx = useMemo(() => {
+    if (!picked) return []
+    return monthTx
+      .filter((t) => t.date === picked)
+      .sort((a, b) => b.createdAt - a.createdAt)
+  }, [monthTx, picked])
 
   return (
     <div className="page">
@@ -157,6 +176,35 @@ export default function StatsPage({ navigate }: { navigate: (to: string) => void
         <div className="card card-pad" style={{ padding: '12px 8px 6px' }}>
           <TrendChart data={trend} height={142} />
         </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>记账日历</h2>
+          <span className="more">{activeDays} 天有记录</span>
+        </div>
+        <MonthCalendar
+          month={month}
+          transactions={transactions}
+          picked={picked}
+          onPick={(d) => setPicked(picked === d ? null : d)}
+        />
+
+        {picked && (
+          <div className="card" style={{ marginTop: 10 }}>
+            <div className="cal-picked-head">
+              <span>
+                {dayjs(picked).format('M月D日')} {weekdayLabel(picked)}
+              </span>
+              <span className="more">{pickedTx.length} 笔</span>
+            </div>
+            {pickedTx.length === 0 ? (
+              <div className="cal-picked-empty">这天没有记账</div>
+            ) : (
+              pickedTx.map((t) => <TransactionRow key={t.id} tx={t} />)
+            )}
+          </div>
+        )}
       </section>
 
       <section className="section">

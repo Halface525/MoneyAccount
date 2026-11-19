@@ -1739,7 +1739,7 @@ textarea {
 .cal-head {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
   padding: 0 2px 8px;
   font-size: 11px;
   color: var(--text-3);
@@ -1749,7 +1749,7 @@ textarea {
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .cal-cell {
@@ -1762,7 +1762,9 @@ textarea {
   min-height: 58px;
   border-radius: 10px;
   border: 1px solid transparent;
-  background: var(--surface-2);
+  /* 没记账的日子完全留白，只有记过的那几天才有底色——
+     整块灰底铺满会让月份看起来像一张格子表，没有重点 */
+  background: none;
   transition: transform 0.12s, background 0.15s;
 }
 
@@ -1770,30 +1772,56 @@ textarea {
   transform: scale(0.95);
 }
 
-/* 邻月的日子只留轮廓，不抢当月的注意力 */
+/* 邻月的日子只留日号，不抢当月的注意力 */
 .cal-cell.out {
   background: none;
-  opacity: 0.42;
 }
 
-/* 有记账的日子按当天支出深浅铺一层，深浅和热力图同一套逻辑 */
+.cal-cell.out .d,
+.cal-cell.out .l {
+  opacity: 0.38;
+}
+
+/* 邻月即使有账也不画底色，免得和当月混在一起 */
+.cal-cell.out .e,
+.cal-cell.out .i {
+  opacity: 0.25;
+}
+
+/* 有记账的日子按当天支出深浅铺一层，深浅和热力图同一套逻辑。
+   起点压得比较低：日号和金额都还在底色上，太浓会读不清 */
 .cal-cell.l1 {
-  background: color-mix(in srgb, var(--accent) 13%, var(--surface-2));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
 }
 .cal-cell.l2 {
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
 }
 .cal-cell.l3 {
-  background: color-mix(in srgb, var(--accent) 32%, var(--surface-2));
+  background: color-mix(in srgb, var(--accent) 25%, var(--surface));
 }
 
+/* 深色下同样比例的橙在深底上显得更稠，按主题降一档，
+   不然整月看去像一片焦糖 */
+[data-theme='dark'] .cal-cell.l1 {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+[data-theme='dark'] .cal-cell.l2 {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+[data-theme='dark'] .cal-cell.l3 {
+  background: color-mix(in srgb, var(--accent) 19%, var(--surface));
+}
+
+/* 今天只把日号染成主色，不加框——不然和「选中」看起来一模一样 */
 .cal-cell.today {
-  border-color: var(--accent);
+  border-color: transparent;
 }
 
+/* 选中的那天用主色描边：纯黑描边在浅色下太冲，和整页的暖调也不搭 */
 .cal-cell.picked {
-  border-color: var(--text);
+  border-color: var(--accent);
   border-width: 1.5px;
+  background: var(--accent-soft);
 }
 
 .cal-cell .d {
@@ -1829,27 +1857,52 @@ textarea {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: 9px;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  font-weight: 560;
   max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
 
-/* 没数字时留出同样高度，格子才不会忽高忽低 */
-.cal-cell .e:empty::before,
-.cal-cell .i:empty::before {
-  content: '·';
-  opacity: 0.12;
-  font-size: 9px;
+/* 格子有 min-height 兜着，没数字时不必再拿点占位——
+   那些小点在留白的格子里像灰尘，反而碍眼 */
+.cal-cell .e:empty,
+.cal-cell .i:empty {
+  display: none;
 }
 
 .cal-cell .e {
-  color: var(--negative);
+  color: color-mix(in srgb, var(--negative) 82%, var(--text));
 }
 
 .cal-cell .i {
-  color: var(--positive);
+  color: color-mix(in srgb, var(--positive) 82%, var(--text));
+}
+
+/* 统计页里点开某天后的摘要卡头部，比正文标题轻一档 */
+.cal-picked-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.cal-picked-head .more {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.cal-picked-empty {
+  padding: 18px 14px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-3);
 }
 
 .cal-legend {
