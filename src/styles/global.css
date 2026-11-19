@@ -1852,7 +1852,7 @@ textarea {
 .cal-cell .e:empty::before,
 .cal-cell .i:empty::before {
   content: '·';
-  opacity: 0.18;
+  opacity: 0.12;
   font-size: 9px;
 }
 

@@ -183,6 +183,14 @@ export default function CalendarPage({ back }: { back: () => void }) {
         </section>
       )}
 
+      {!picked && (
+        <div className="card empty" style={{ marginTop: 14, padding: '22px 16px' }}>
+          <span className="em">🗓</span>
+          <div className="t">点某一天</div>
+          <div className="s">看看那天记了几笔、花了多少</div>
+        </div>
+      )}
+
       <div style={{ height: 8 }} />
     </div>
   )
