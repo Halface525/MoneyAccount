@@ -91,9 +91,13 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | --- | --- | --- |
 | ![周期账单](docs/screenshots/06-recurring.png) | ![我的](docs/screenshots/08-mine.png) | ![设置](docs/screenshots/09-settings.png) |
 
-| 对话记账 | AI 设置 | 记账日历 |
+| 对话记账 | 语音输入 | AI 设置 |
 | --- | --- | --- |
-| ![对话记账](docs/screenshots/10-chat.png) | ![AI 设置](docs/screenshots/11-ai.png) | ![记账日历](docs/screenshots/13-calendar.png) |
+| ![对话记账](docs/screenshots/10-chat.png) | ![语音输入](docs/screenshots/14-voice.png) | ![AI 设置](docs/screenshots/11-ai.png) |
+
+| 记账日历 |
+| --- |
+| ![记账日历](docs/screenshots/13-calendar.png) |
 
 | 桌面小组件（深色主题，2×2 今日 + 4×2 打卡） |
 | --- |
