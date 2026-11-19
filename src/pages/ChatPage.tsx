@@ -111,14 +111,16 @@ export default function ChatPage({
   const firstScroll = useRef(true)
   useLayoutEffect(() => {
     const jump = () => {
-      const el = bottomRef.current
-      if (!el) return
+      if (!bottomRef.current) return
+      // 滚到文档最底，而不是把这条占位 div 的底边对齐视口底边：
+      // 输入条是 fixed 的，占了视口最下面一截，对齐视口底边等于把最后一条
+      // 塞到输入条底下。滚到最底则留出 .chat-page 的 padding-bottom 当缓冲区。
+      const max = document.documentElement.scrollHeight - window.innerHeight
       if (firstScroll.current) {
-        const y = window.scrollY + el.getBoundingClientRect().bottom - window.innerHeight
-        window.scrollTo(0, Math.max(0, y + 8))
+        window.scrollTo(0, Math.max(0, max))
         firstScroll.current = false
       } else {
-        el.scrollIntoView({ block: 'end', behavior: 'smooth' })
+        window.scrollTo({ top: Math.max(0, max), behavior: 'smooth' })
       }
     }
     jump()
