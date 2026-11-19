@@ -844,31 +844,95 @@ textarea {
   font-weight: 600;
 }
 
-.add-amount {
+/* 金额卡：左边当前分类（选了哪个一眼能看见），右边余额数字。
+   之前金额孤零零贴右边，左边整片空着，重心偏得厉害 */
+.add-amount-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 16px 10px;
+  padding: 12px 14px;
+  min-height: 84px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.am-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.am-em {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.am-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.am-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 42vw;
+}
+
+.am-sub {
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 42vw;
+}
+
+.am-right {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  padding: 14px 20px 10px;
-  gap: 4px;
-  min-height: 78px;
+  gap: 3px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.add-amount .cur {
-  font-size: 24px;
+.am-right .cur {
+  font-size: 19px;
   color: var(--text-3);
   font-weight: 500;
+  flex: none;
 }
 
-.add-amount .val {
+.am-right .val {
   font-family: var(--font-num);
-  font-size: 46px;
+  font-size: 38px;
   font-weight: 600;
   letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
-.add-amount .val.placeholder {
+.am-right .val.placeholder {
   color: var(--text-3);
   opacity: 0.45;
 }
@@ -914,9 +978,9 @@ textarea {
   padding: 6px 10px 12px;
   overflow-y: auto;
   flex: 1;
-  /* safe center：内容放得下就居中，放不下退回靠上，避免首行被裁掉 */
-  align-content: safe center;
-  padding-top: 4px;
+  /* 内容少的时候从上往下排，不要垂直居中——居中会让键盘上方空出一大块 */
+  align-content: start;
+  padding-top: 6px;
 }
 
 .cat-cell {
@@ -934,9 +998,9 @@ textarea {
 }
 
 .cat-cell .box {
-  width: 44px;
-  height: 44px;
-  border-radius: 15px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
   font-size: 21px;
@@ -980,6 +1044,223 @@ textarea {
 .cat-cell.sel .nm {
   color: var(--text);
   font-weight: 600;
+}
+
+/* 转账：左右两个可点区域 + 中间的交换按钮 */
+/* 默认从上往下排：垂直居中会让 chips 和卡片之间空出一大块，看着像没加载完 */
+.tf-wrap {
+  flex: 1;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tf-card {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 10px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.tf-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 4px;
+  border-radius: 14px;
+  transition: background 0.15s, transform 0.15s;
+  min-width: 0;
+}
+
+.tf-side:active {
+  background: var(--surface-3);
+  transform: scale(0.97);
+}
+
+.tf-em {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.tf-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-bal {
+  font-family: var(--font-num);
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-swap {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1), background 0.15s;
+}
+
+.tf-swap:active {
+  transform: rotate(180deg) scale(0.92);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.tf-hint {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+/* 转账页的「常用」快捷：空着的那块地方正好放这个 */
+.tf-recent {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tf-recent-head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+  padding: 2px 4px 4px;
+}
+
+.tf-recent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: background 0.15s, transform 0.12s;
+  color: var(--text-2);
+}
+
+.tf-recent-row:active {
+  transform: scale(0.98);
+}
+
+.tf-recent-row.on {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.tf-recent-row .cat-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  font-size: 13px;
+  flex: none;
+}
+
+.tf-recent-name {
+  flex: 1;
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 矮屏（320×568 这类）：上下都往外挤，优先保住「至少看见两三行分类」 */
+@media (max-height: 640px) {
+  .add-header {
+    padding: 4px 10px;
+  }
+  .add-amount-card {
+    min-height: 66px;
+    padding: 8px 12px;
+    margin: 2px 12px 8px;
+  }
+  .am-em {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+  .am-name {
+    font-size: 13px;
+  }
+  .am-right .val {
+    font-size: 30px;
+  }
+  .am-right .cur {
+    font-size: 16px;
+  }
+  .add-meta {
+    padding: 0 12px 6px;
+    gap: 6px;
+  }
+  .chip {
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+  .cat-grid {
+    gap: 2px;
+    padding: 4px 8px 8px;
+  }
+  .cat-cell {
+    padding: 5px 0 4px;
+    gap: 3px;
+  }
+  .cat-cell .box {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    font-size: 18px;
+  }
+  .cat-cell .nm {
+    font-size: 10px;
+  }
+  .tf-card {
+    padding: 12px 8px;
+  }
+  .tf-em {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 18px;
+  }
+  .keypad {
+    padding: 6px 6px calc(6px + var(--safe-b));
+  }
+  .keys {
+    gap: 6px;
+  }
+  .key {
+    height: 44px;
+    border-radius: 13px;
+    font-size: 19px;
+  }
 }
 
 /* keypad */
@@ -1072,8 +1353,9 @@ textarea {
   transform: scale(0.96);
 }
 
+/* 功能键不画边框，但留一层极淡的底，不然在浅色上看像什么都没画 */
 .key.fn {
-  background: transparent;
+  background: var(--surface-3);
   border-color: transparent;
   font-size: 19px;
   color: var(--text-2);

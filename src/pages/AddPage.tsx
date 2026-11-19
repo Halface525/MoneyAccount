@@ -29,7 +29,7 @@ export default function AddPage({
   presetCat?: string
   navigate: (to: string) => void
 }) {
-  const { categories, accounts, accMap, accountBalances, toast } = useApp()
+  const { transactions, categories, accounts, accMap, catMap, accountBalances, toast } = useApp()
 
   const [mode, setMode] = useState<Mode>(presetType ?? 'expense')
   const [raw, setRaw] = useState('')
@@ -173,6 +173,33 @@ export default function AddPage({
   const acc = accMap.get(accountId)
   const toAcc = accMap.get(toAccountId)
 
+  // 金额卡左侧：支出/收入跟着分类走，转账显示两端账户
+  const pickedCat = catMap.get(categoryId)
+  const pickEmoji =
+    mode === 'transfer' ? '🔄' : (pickedCat?.icon ?? '❓')
+  const pickColor =
+    mode === 'transfer' ? '#9C86C9' : pickedCat?.color
+  // 转账时这里只说「转账」，两端账户交给下面那张卡，免得同一句话写两遍
+  const pickName =
+    mode === 'transfer' ? '转账' : (pickedCat?.name ?? '选个分类')
+  const pickSub =
+    mode === 'transfer'
+      ? '账户之间互转，不计收支'
+      : `${mode === 'income' ? '收入' : '支出'} · ${acc?.name ?? '未选账户'}`
+
+  // 最近用过的转账组合：转账页空着一大片，正好拿来当快捷入口
+  const recentTransfers = useMemo(() => {
+    const seen = new Map<string, { from: string; to: string; at: number }>()
+    transactions.forEach((t) => {
+      if (t.type !== 'transfer' || !t.toAccountId) return
+      const key = `${t.accountId}>${t.toAccountId}`
+      const hit = seen.get(key)
+      const at = t.createdAt || 0
+      if (!hit || at > hit.at) seen.set(key, { from: t.accountId, to: t.toAccountId, at })
+    })
+    return [...seen.values()].slice(0, 3)
+  }, [transactions])
+
   /** 取消「长按进入整理模式」的计时器 */
   const clearHold = () => {
     if (holdRef.current) {
@@ -263,11 +290,27 @@ export default function AddPage({
         </div>
       </div>
 
-      <div className="add-amount">
-        <span className="cur">¥</span>
-        <span className={'val' + (raw === '' ? ' placeholder' : '')}>
-          {raw === '' ? '0.00' : raw}
-        </span>
+      {/* 金额区：左边是当前选中的分类/转账，右边是大金额。
+          之前金额单独右对齐悬在空中，左边全是空的，重心是散的 */}
+      <div className="add-amount-card">
+        <div className="am-left">
+          <span
+            className="am-em"
+            style={{ background: (pickColor ?? '#999') + '26' }}
+          >
+            {pickEmoji}
+          </span>
+          <span className="am-txt">
+            <span className="am-name">{pickName}</span>
+            <span className="am-sub">{pickSub}</span>
+          </span>
+        </div>
+        <div className="am-right">
+          <span className="cur">¥</span>
+          <span className={'val' + (raw === '' ? ' placeholder' : '')}>
+            {raw === '' ? '0.00' : raw}
+          </span>
+        </div>
       </div>
 
       <div className="add-meta">
@@ -296,45 +339,88 @@ export default function AddPage({
       </div>
 
       {mode === 'transfer' ? (
-        <div style={{ flex: 1, padding: '4px 16px', overflowY: 'auto' }}>
-          <div
-            className="card card-pad"
-            style={{ display: 'flex', alignItems: 'center', gap: 12 }}
-          >
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div
-                className="cat-icon"
-                style={{ margin: '0 auto 6px', width: 42, height: 42, fontSize: 19, background: (acc?.color ?? '#999') + '1f' }}
+        /* 转账：左右两半各点一个账户，中间的箭头可以一键对调。
+           之前只有一张只读卡片，中间空着一大片什么都没有 */
+        <div className="tf-wrap">
+          <div className="tf-card">
+            <button
+              className="tf-side"
+              onClick={() => setSheet('account')}
+              aria-label="选择转出账户"
+            >
+              <span
+                className="tf-em"
+                style={{ background: (acc?.color ?? '#999') + '26' }}
               >
-                {acc?.icon}
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500 }}>{acc?.name}</div>
-              <div className="small muted">
+                {acc?.icon ?? '💳'}
+              </span>
+              <span className="tf-name">{acc?.name ?? '转出账户'}</span>
+              <span className="tf-bal">
                 {moneySigned(accountBalances.get(accountId) ?? 0)}
-              </div>
-            </div>
-            <div style={{ color: 'var(--accent)', flex: 'none' }}>
-              <IconTransfer size={22} />
-            </div>
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div
-                className="cat-icon"
-                style={{ margin: '0 auto 6px', width: 42, height: 42, fontSize: 19, background: (toAcc?.color ?? '#999') + '1f' }}
+              </span>
+            </button>
+
+            <button
+              className="tf-swap"
+              onClick={() => {
+                if (!toAccountId) return
+                setAccountId(toAccountId)
+                setToAccountId(accountId)
+                navigator.vibrate?.(10)
+              }}
+              aria-label="对调转出与转入"
+            >
+              <IconTransfer size={20} />
+            </button>
+
+            <button
+              className="tf-side"
+              onClick={() => setSheet('toAccount')}
+              aria-label="选择转入账户"
+            >
+              <span
+                className="tf-em"
+                style={{ background: (toAcc?.color ?? '#999') + '26' }}
               >
-                {toAcc?.icon}
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500 }}>{toAcc?.name}</div>
-              <div className="small muted">
+                {toAcc?.icon ?? '💳'}
+              </span>
+              <span className="tf-name">{toAcc?.name ?? '转入账户'}</span>
+              <span className="tf-bal">
                 {moneySigned(accountBalances.get(toAccountId) ?? 0)}
-              </div>
+              </span>
+            </button>
+          </div>
+          <div className="tf-hint">点账户换方向，点中间箭头两边对调</div>
+
+          {recentTransfers.length > 0 && (
+            <div className="tf-recent">
+              <div className="tf-recent-head">常用</div>
+              {recentTransfers.map((r) => {
+                const from = accMap.get(r.from)
+                const to = accMap.get(r.to)
+                if (!from || !to) return null
+                const on = r.from === accountId && r.to === toAccountId
+                return (
+                  <button
+                    key={`${r.from}>${r.to}`}
+                    className={'tf-recent-row' + (on ? ' on' : '')}
+                    onClick={() => {
+                      setAccountId(r.from)
+                      setToAccountId(r.to)
+                    }}
+                  >
+                    <span className="cat-icon" style={{ background: from.color + '1f' }}>
+                      {from.icon}
+                    </span>
+                    <span className="tf-recent-name">
+                      {from.name} → {to.name}
+                    </span>
+                    {on && <IconCheck size={16} />}
+                  </button>
+                )
+              })}
             </div>
-          </div>
-          <div
-            className="small"
-            style={{ textAlign: 'center', color: 'var(--text-3)', marginTop: 12 }}
-          >
-            账户之间转账，不计入收支统计
-          </div>
+          )}
         </div>
       ) : (
         <div className={'cat-grid' + (catMode ? ' editing' : '')}>
