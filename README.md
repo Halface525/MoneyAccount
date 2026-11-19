@@ -12,8 +12,8 @@
 已经打包好签名的安装包，两种拿法：
 
 - **直接下载**：[最新 Release](https://github.com/nimingzhe-ding/MoneyAccount/releases/latest) 里的
-  `suishouji-1.5.3.apk`，手机上点开就能装。
-- **仓库里**：[`release/suishouji-1.5.3.apk`](release/suishouji-1.5.3.apk) 是当前版；新版打完包
+  `suishouji-1.5.9.apk`，手机上点开就能装。
+- **仓库里**：[`release/suishouji-1.5.9.apk`](release/suishouji-1.5.9.apk) 是当前版；新版打完包
   也放进 `release/` 目录，只保留最新一版。
 
 装的时候需要在系统里允许「安装未知来源应用」。首次打开会看到深色启动页 + 金色 ¥ 图标。
@@ -57,8 +57,8 @@ npm run android:release
 还没有这个文件，可以先用「设置 → 关于 → 打开发布页」兜底。
 
 ```bash
-git tag v1.5.3 && git push origin v1.5.3
-gh release create v1.5.3 release/suishouji-1.5.3.apk --title "随手记 1.5.3"
+git tag v1.5.9 && git push origin v1.5.9
+gh release create v1.5.9 release/suishouji-1.5.9.apk --title "随手记 1.5.9"
 ```
 
 ## 数据存在哪
