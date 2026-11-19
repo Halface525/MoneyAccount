@@ -90,7 +90,6 @@ export default function ChatPage({
   const [thinking, setThinking] = useState(false)
   const [editing, setEditing] = useState<{ msgId: string; key: string; field: Field } | null>(null)
   const [amountDraft, setAmountDraft] = useState('')
-  const [noteDraft, setNoteDraft] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -272,7 +271,6 @@ export default function ChatPage({
   const openField = (msgId: string, d: Draft, field: Field) => {
     setEditing({ msgId, key: d.key, field })
     if (field === 'amount') setAmountDraft(fenToYuanInput(d.amount))
-    if (field === 'note') setNoteDraft(d.note ?? '')
   }
 
   /** 把卡片写进账本，成功返回写入的 id */
@@ -476,10 +474,19 @@ export default function ChatPage({
                         <IconCalendar size={12} />
                         {formatDateLabel(d.date)}
                       </button>
-                      <button className="chip" onClick={() => openField(m.id, d, 'note')}>
-                        {d.note ? '📝 ' + d.note : '+ 备注'}
-                      </button>
                     </div>
+
+                    {!d.done && (
+                      <input
+                        className="draft-note"
+                        placeholder="+ 备注，直接写"
+                        value={d.note ?? ''}
+                        onChange={(e) =>
+                          patchDraft(m.id, d.key, { note: e.target.value || undefined })
+                        }
+                      />
+                    )}
+                    {d.done && d.note && <div className="draft-note-ro">📝 {d.note}</div>}
 
                     {!d.done && (
                       <div className="draft-actions">
@@ -763,33 +770,6 @@ export default function ChatPage({
             </>
           )}
 
-          {editing.field === 'note' && (
-            <>
-              <input
-                className="field"
-                style={{ textAlign: 'left', fontSize: 16, width: '100%' }}
-                placeholder="写点什么…"
-                value={noteDraft}
-                autoFocus
-                onChange={(e) => setNoteDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter') return
-                  patchDraft(editing.msgId, editing.key, { note: noteDraft.trim() || undefined })
-                  closeSheet()
-                }}
-              />
-              <button
-                className="btn btn-primary btn-block"
-                style={{ marginTop: 10 }}
-                onClick={() => {
-                  patchDraft(editing.msgId, editing.key, { note: noteDraft.trim() || undefined })
-                  closeSheet()
-                }}
-              >
-                完成
-              </button>
-            </>
-          )}
         </Sheet>
       )}
 
@@ -797,7 +777,7 @@ export default function ChatPage({
   )
 }
 
-type Field = 'amount' | 'category' | 'account' | 'toAccount' | 'date' | 'note'
+type Field = 'amount' | 'category' | 'account' | 'toAccount' | 'date'
 
 const SHEET_TITLE: Record<Field, string> = {
   amount: '金额',
@@ -805,5 +785,4 @@ const SHEET_TITLE: Record<Field, string> = {
   account: '选择账户',
   toAccount: '转入账户',
   date: '选择日期',
-  note: '备注',
 }
