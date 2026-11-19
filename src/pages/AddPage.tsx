@@ -334,32 +334,38 @@ export default function AddPage({
           <IconCalendar size={13} />
           {formatDateLabel(date)}
         </button>
-      </div>
 
-      {/* 备注：常驻一行，点上去直接打字，不再弹底部面板 */}
-      <div className={'note-row' + (noteFocus ? ' on' : '')}>
-        <span className="note-em">📝</span>
-        <input
-          className="note-input"
-          placeholder="加一句备注，比如「和同事吃午饭」"
-          value={note}
-          maxLength={60}
-          onFocus={() => setNoteFocus(true)}
-          onBlur={() => setNoteFocus(false)}
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
-          }}
-        />
-        {note && (
-          <button
-            className="note-clear"
-            onClick={() => setNote('')}
-            aria-label="清空备注"
-          >
-            ✕
-          </button>
-        )}
+        {/* 备注并进这一排：它和账户、日期一样都是「这笔的附属信息」，
+            单独占一条横带会像中间夹了块板子 */}
+        <label className={'note-chip' + (noteFocus ? ' on' : '') + (note ? ' has' : '')}>
+          <span className="note-em">📝</span>
+          <input
+            className="note-input"
+            placeholder="备注"
+            value={note}
+            maxLength={60}
+            onFocus={() => setNoteFocus(true)}
+            onBlur={() => setNoteFocus(false)}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+            }}
+          />
+          {note && (
+            <span
+              className="note-clear"
+              role="button"
+              aria-label="清空备注"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setNote('')
+              }}
+            >
+              ✕
+            </span>
+          )}
+        </label>
       </div>
 
       {mode === 'transfer' ? (
