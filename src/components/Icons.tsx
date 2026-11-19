@@ -150,3 +150,22 @@ export const IconTransfer = ({ size = 18, strokeWidth = 1.9, className }: P) => 
     <path d="M20 16H7M10 13l-3 3 3 3" />
   </svg>
 )
+
+export const IconMic = ({ size = 17, strokeWidth = 1.9, className }: P) => (
+  <svg {...base(size, strokeWidth)} className={className}>
+    <rect x="9" y="2.8" width="6" height="11.4" rx="3" />
+    <path d="M5.2 11.4a6.8 6.8 0 0 0 13.6 0" />
+    <path d="M12 18.2V21" />
+  </svg>
+)
+
+export const IconMicOff = ({ size = 17, strokeWidth = 1.9, className }: P) => (
+  <svg {...base(size, strokeWidth)} className={className}>
+    <path d="M9 5.6a3 3 0 0 1 6 0v5.2a3 3 0 0 1-.5 1.65" />
+    <path d="M9 9.4v1.6a3 3 0 0 0 4.2 2.75" />
+    <path d="M5.2 11.4a6.8 6.8 0 0 0 10.6 5.55" />
+    <path d="M18.8 11.4a6.8 6.8 0 0 1-.35 2.15" />
+    <path d="M12 18.2V21" />
+    <path d="M4 3l16 18" />
+  </svg>
+)

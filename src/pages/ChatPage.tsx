@@ -15,6 +15,11 @@ import {
   AiError,
   type AiConfig,
 } from '../lib/ai'
+import {
+  speechAvailable,
+  startListening,
+  stopListening,
+} from '../lib/speech'
 import { formatDateLabel, money, parseAmount, uid } from '../lib/format'
 import Sheet from '../components/Sheet'
 import {
@@ -23,6 +28,7 @@ import {
   IconChevronLeft,
   IconClose,
   IconGear,
+  IconMic,
   IconTrash,
 } from '../components/Icons'
 
@@ -69,7 +75,7 @@ function saveMessages(list: Msg[]) {
 const WELCOME: Msg = {
   id: 'm_welcome',
   role: 'bot',
-  text: '想记什么直接说，比如「昨天午饭 25 微信」。\n一句话里说几笔也行，我会拆成几张卡片，你确认后一起入账。',
+  text: '想记什么直接说，比如「昨天午饭 25 微信」。\n懒得打字就点左下角麦克风，说完自动发出去。一句话里说几笔也行，我会拆成几张卡片，你确认后一起入账。',
   at: Date.now(),
 }
 
@@ -88,6 +94,8 @@ export default function ChatPage({
   const [text, setText] = useState('')
   const [cfg, setCfg] = useState<AiConfig | null>(null)
   const [thinking, setThinking] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [micOk, setMicOk] = useState(false)
   const [editing, setEditing] = useState<{ msgId: string; key: string; field: Field } | null>(null)
   const [amountDraft, setAmountDraft] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -99,7 +107,11 @@ export default function ChatPage({
   }, [msgs.length, thinking])
   useEffect(() => {
     void loadAiConfig().then(setCfg)
+    void speechAvailable().then(setMicOk)
   }, [])
+
+  // 离开页面时别让麦克风还开着
+  useEffect(() => () => void stopListening(), [])
 
   const activeAccounts = useMemo(
     () => accounts.filter((a) => !a.archived),
@@ -159,6 +171,38 @@ export default function ChatPage({
       default:
         return 'AI 这次没返回可用的结果，先用本地识别：'
     }
+  }
+
+  /**
+   * 按住说话：边听边把识别结果写进输入框，停手就用这句话直接发出去。
+   * 之所以「停手即发送」而不是「填好再点发送」——对话记账本来就是一句话的事，
+   * 多说一次点击没意义。
+   */
+  const toggleMic = async () => {
+    if (thinking) return
+
+    if (listening) {
+      setListening(false)
+      await stopListening()
+      return
+    }
+
+    setListening(true)
+    let got = ''
+
+    await startListening((r) => {
+      if (r.text) {
+        got = r.text
+        setText(r.text)
+      }
+      if (r.final) {
+        setListening(false)
+        void stopListening().then(() => {
+          if (got.trim()) void send(got)
+          else if (!r.text) toast('没听清，再说一次试试')
+        })
+      }
+    })
   }
 
   const send = async (raw?: string) => {
@@ -569,12 +613,26 @@ export default function ChatPage({
       )}
 
       <div className="chat-input-bar">
+        {micOk && (
+          <button
+            className={'chat-mic' + (listening ? ' on' : '')}
+            onClick={() => void toggleMic()}
+            disabled={thinking}
+            aria-label={listening ? '停止说话' : '语音输入'}
+            title={listening ? '说完了，点一下结束' : '语音输入'}
+          >
+            <IconMic size={18} />
+            {listening && <span className="chat-mic-wave" />}
+          </button>
+        )}
         <div className="chat-input">
           <textarea
             ref={inputRef}
             rows={1}
             value={text}
-            placeholder={thinking ? '正在想…' : '例如：昨天午饭 25 微信'}
+            placeholder={
+              listening ? '听着呢，说完点一下麦克风…' : thinking ? '正在想…' : '例如：昨天午饭 25 微信'
+            }
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -592,7 +650,7 @@ export default function ChatPage({
         <button
           className="chat-send"
           onClick={() => send()}
-          disabled={!text.trim() || thinking}
+          disabled={!text.trim() || thinking || listening}
           aria-label="发送"
         >
           {thinking ? <span className="spinner" /> : <IconArrowUp size={17} strokeWidth={2.4} />}
