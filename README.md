@@ -91,9 +91,9 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | --- | --- | --- |
 | ![周期账单](docs/screenshots/06-recurring.png) | ![我的](docs/screenshots/08-mine.png) | ![设置](docs/screenshots/09-settings.png) |
 
-| 对话记账 | AI 设置 |
-| --- | --- |
-| ![对话记账](docs/screenshots/10-chat.png) | ![AI 设置](docs/screenshots/11-ai.png) |
+| 对话记账 | AI 设置 | 记账日历 |
+| --- | --- | --- |
+| ![对话记账](docs/screenshots/10-chat.png) | ![AI 设置](docs/screenshots/11-ai.png) | ![记账日历](docs/screenshots/13-calendar.png) |
 
 | 桌面小组件（深色主题，2×2 今日 + 4×2 打卡） |
 | --- |
@@ -113,6 +113,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | 明细 | 按月浏览，按收支类型/分类/账户/金额区间筛选，关键词搜索 |
 | 周期账单 | 房租、订阅、还款设成规则，打开 App 自动补记到期条目 |
 | 分类管理 | 22 个预置分类，可增删、换图标换颜色、调整顺序；记账页里长按分类就能改，末尾的「＋」直接新建 |
+| 记账日历 | 一月一屏，每格写公历、农历和当天支出/收入，有账的日子按金额深浅铺色；点某天在下面展开那天的明细。首页月份、我的 → 记账日历都能进 |
 | 打卡热力图 | 近 19 周每天一格，按笔数或金额着深浅；点开看当天几笔花了多少，另有连续记账天数 |
 | 外观 | 跟随系统 / 浅色 / 深色 |
 | 数据文件 | 自动把账本写成手机里的 JSON 文件，按天留档，可回滚到任意一天 |
@@ -140,6 +141,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 - **数字用等宽字形 + 小数位降一级**：`¥9,801.20` 里整数大、小数小，扫一眼就能读到关键位。
 - **负数带符号**：账户余额为负（比如刷了信用卡）时显示 `-¥300.00`，负号在货币符号前面，不会被四舍五入藏起来。
 - **打卡热力图沿用同一个暖色相**，只用深浅区分疏密，不和分类色抢注意力；未来日期用虚线格，暗示「还没到」。
+- **日历不引日历库**：农历走浏览器自带的 `Intl.DateTimeFormat('zh-CN-u-ca-chinese')`，一年几十个字的开销，省掉一份要自己维护几十年、还容易算错的农历表。
 
 ## 目录
 
@@ -152,11 +154,12 @@ src/
               native.ts Capacitor 桥接：状态栏、返回键、文件导出、外链、组件深链
               update.ts 检查更新（多镜像并行、结果缓存 6 小时，只读版本号）
               heatmap.ts 打卡热力图计算（统计页与桌面组件共用）
+              lunar.ts 农历小字（Intl 中文历法，不引日历库）
               widget.ts 桌面小组件快照：算好今日收支与预算，交给原生插件
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
               Heatmap 打卡热力图 · CategoryEditor 分类编辑面板（记账页与分类页共用）
   pages/      HomePage 首页 · ChatPage 对话记账 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
-              BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
+              CalendarPage 记账日历 · BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
               CategoriesPage 分类 · MinePage 我的 · SettingsPage 设置
   styles/     global.css 全部样式（CSS 变量驱动的深浅色主题）
 scripts/
