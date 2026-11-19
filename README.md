@@ -118,7 +118,7 @@ Documents/随手记/archives/2026-11-18.json  按天留档，同一天覆盖
 | 明细 | 按月浏览，按收支类型/分类/账户/金额区间筛选，关键词搜索 |
 | 周期账单 | 房租、订阅、还款设成规则，打开 App 自动补记到期条目 |
 | 分类管理 | 22 个预置分类，可增删、换图标换颜色、调整顺序；记账页里长按分类就能改，末尾的「＋」直接新建 |
-| 记账日历 | 一月一屏，每格写公历、农历和当天支出/收入，有账的日子按金额深浅铺色；点某天在下面展开那天的明细。首页月份、我的 → 记账日历都能进 |
+| 记账日历 | 一月一屏，每格写公历、农历和当天支出/收入，有账的日子按金额深浅铺色；点某天在下面展开那天的明细。统计页里也有一份，跟着上面的月份一起翻；首页月份、我的 → 记账日历也能进 |
 | 打卡热力图 | 近 19 周每天一格，按笔数或金额着深浅；点开看当天几笔花了多少，另有连续记账天数 |
 | 外观 | 跟随系统 / 浅色 / 深色 |
 | 数据文件 | 自动把账本写成手机里的 JSON 文件，按天留档，可回滚到任意一天 |
@@ -164,7 +164,8 @@ src/
               lunar.ts 农历小字（Intl 中文历法，不引日历库）
               widget.ts 桌面小组件快照：算好今日收支与预算，交给原生插件
   components/ Icons 手写 SVG 图标 · TabBar 底部导航 · Sheet 底部抽屉 · TransactionRow 记账行 · Donut / TrendChart
-              Heatmap 打卡热力图 · CategoryEditor 分类编辑面板（记账页与分类页共用）
+              Heatmap 打卡热力图 · MonthCalendar 月历格子（日历页与统计页共用）
+              CategoryEditor 分类编辑面板（记账页与分类页共用）
   pages/      HomePage 首页 · ChatPage 对话记账 · AddPage 记账 · TransactionsPage 明细 · StatsPage 统计
               CalendarPage 记账日历 · BudgetPage 预算 · AccountsPage 账户 · RecurringPage 周期账单
               CategoriesPage 分类 · MinePage 我的 · SettingsPage 设置
