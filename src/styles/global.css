@@ -583,6 +583,30 @@ textarea {
   letter-spacing: -0.02em;
 }
 
+/* 3–4 个账户：等分整行、两端对齐，不再横向滚动藏掉最后一张 */
+.acc-strip.fit {
+  display: grid;
+  gap: 6px;
+  overflow: visible;
+}
+
+.acc-strip.fit .acc-mini {
+  flex: none;
+  min-width: 0;
+  padding: 10px 6px;
+}
+
+.acc-strip.fit .acc-mini .n {
+  font-size: 11px;
+}
+
+.acc-strip.fit .acc-mini .v {
+  max-width: 100%;
+  font-size: clamp(11px, 3.1vw, 15px);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
 /* ---------- Transaction list ---------- */
 .tx-group {
   background: var(--surface);

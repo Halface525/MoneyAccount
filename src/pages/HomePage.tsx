@@ -192,28 +192,38 @@ export default function HomePage({ navigate }: { navigate: (to: string) => void 
             管理
           </button>
         </div>
-        <div className="acc-strip">
-          {accounts.map((a) => (
-            <button
-              key={a.id}
-              className="acc-mini"
-              onClick={() => navigate('/accounts')}
-            >
-              <span
-                className="cat-icon"
-                style={{ background: a.color + '1f', width: 30, height: 30, fontSize: 15, borderRadius: 10 }}
+        <div
+          className={'acc-strip' + (accounts.length > 0 && accounts.length <= 4 ? ' fit' : '')}
+          style={
+            accounts.length > 0 && accounts.length <= 4
+              ? { gridTemplateColumns: `repeat(${accounts.length}, minmax(0, 1fr))` }
+              : undefined
+          }
+        >
+          {accounts.map((a) => {
+            const bal = accountBalances.get(a.id) ?? 0
+            return (
+              <button
+                key={a.id}
+                className="acc-mini"
+                onClick={() => navigate('/accounts')}
               >
-                {a.icon}
-              </span>
-              <span className="n">{a.name}</span>
-              <span
-                className="v num"
-                style={{ color: (accountBalances.get(a.id) ?? 0) < 0 ? 'var(--negative)' : undefined }}
-              >
-                {moneySigned(accountBalances.get(a.id) ?? 0)}
-              </span>
-            </button>
-          ))}
+                <span
+                  className="cat-icon"
+                  style={{ background: a.color + '1f', width: 30, height: 30, fontSize: 15, borderRadius: 10 }}
+                >
+                  {a.icon}
+                </span>
+                <span className="n">{a.name}</span>
+                <span
+                  className="v num"
+                  style={{ color: bal < 0 ? 'var(--negative)' : undefined }}
+                >
+                  {moneySigned(bal)}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </section>
 
