@@ -457,6 +457,7 @@ textarea {
 
 .entry:active {
   transform: scale(0.97);
+  background: var(--surface-2);
 }
 
 .entry .em {
@@ -493,33 +494,20 @@ textarea {
   text-overflow: ellipsis;
 }
 
-/* 记一笔：主色实心，视觉上略重一点 */
-.entry-add {
-  border-color: transparent;
-  background: linear-gradient(150deg, #f6bd62, #dd9130);
-  box-shadow: 0 8px 20px -10px rgba(160, 92, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+/* 两个入口视觉上等重：同一套底、同一个图标块，只用图标区分 */
+.entry .em {
+  background: var(--accent-soft);
 }
 
 .entry-add .em {
-  background: rgba(255, 255, 255, 0.42);
+  background: linear-gradient(150deg, #f6bd62, #dd9130);
+  box-shadow: 0 4px 10px -4px rgba(160, 92, 26, 0.55);
 }
 
-.entry-add .t {
-  color: #34200c;
-}
-
-.entry-add .s {
-  color: rgba(52, 32, 12, 0.62);
-}
-
-/* 对话记账：柔和底 + 描边 */
 .entry-chat .em {
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface-3));
+  background: color-mix(in srgb, var(--positive) 16%, var(--surface-3));
 }
 
-[data-theme='dark'] .entry-add {
-  background: linear-gradient(150deg, #f2bc5f, #cf8a2a);
-}
 
 /* ---------- 常用分类 ---------- */
 .shortcuts {
@@ -2171,6 +2159,59 @@ textarea {
   max-height: 96px;
   padding: 4px 0;
   font-family: inherit;
+}
+
+/* 麦克风：静止时是描边圆，听的时候填成主色并向外扩散一圈 */
+.chat-mic {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text-2);
+  box-shadow: var(--shadow-sm);
+  transition: color 0.16s, background 0.16s, transform 0.14s;
+}
+
+.chat-mic:active {
+  transform: scale(0.94);
+}
+
+.chat-mic.on {
+  background: linear-gradient(148deg, #f7c46b 0%, #e79a3f 52%, #d0792a 100%);
+  border-color: transparent;
+  color: #3a2410;
+  box-shadow: 0 6px 18px -8px rgba(208, 144, 44, 0.95);
+}
+
+/* 录音中的呼吸圈，只做视觉提示，不阻塞点击 */
+.chat-mic-wave {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0.55;
+  animation: mic-wave 1.6s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes mic-wave {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.6;
+  }
+  70% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.18);
+    opacity: 0;
+  }
 }
 
 .chat-send {
