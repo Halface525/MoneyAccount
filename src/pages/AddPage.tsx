@@ -39,12 +39,13 @@ export default function AddPage({
   const [date, setDate] = useState(todayStr())
   const [time, setTime] = useState(nowTime())
   const [note, setNote] = useState('')
-  const [sheet, setSheet] = useState<'account' | 'toAccount' | 'date' | 'note' | null>(null)
+  const [sheet, setSheet] = useState<'account' | 'toAccount' | 'date' | null>(null)
   const [catEditor, setCatEditor] = useState<Category | 'new' | null>(null)
   // 整理模式：长按分类进入，进去后能拖动排序、点 × 删除
   const [catMode, setCatMode] = useState(false)
   const [deleting, setDeleting] = useState<{ cat: Category; count: number } | null>(null)
-  const [noteDraft, setNoteDraft] = useState('')
+  // 备注改成页面里直接打，不再弹面板；打字时把键盘收起来给输入框让位
+  const [noteFocus, setNoteFocus] = useState(false)
   const [loaded, setLoaded] = useState(!editId)
   const [saving, setSaving] = useState(false)
 
@@ -253,7 +254,7 @@ export default function AddPage({
   const [confirmDel, setConfirmDel] = useState(false)
 
   return (
-    <div className="add-page">
+    <div className={'add-page' + (noteFocus ? ' note-on' : '')}>
       <div className="add-header">
         <div className="row" style={{ gap: 2 }}>
           <button className="icon-btn" onClick={back} aria-label="返回">
@@ -333,9 +334,32 @@ export default function AddPage({
           <IconCalendar size={13} />
           {formatDateLabel(date)}
         </button>
-        <button className="chip" onClick={() => { setNoteDraft(note); setSheet('note') }}>
-          {note ? '📝 ' + note : '+ 备注'}
-        </button>
+      </div>
+
+      {/* 备注：常驻一行，点上去直接打字，不再弹底部面板 */}
+      <div className={'note-row' + (noteFocus ? ' on' : '')}>
+        <span className="note-em">📝</span>
+        <input
+          className="note-input"
+          placeholder="加一句备注，比如「和同事吃午饭」"
+          value={note}
+          maxLength={60}
+          onFocus={() => setNoteFocus(true)}
+          onBlur={() => setNoteFocus(false)}
+          onChange={(e) => setNote(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+          }}
+        />
+        {note && (
+          <button
+            className="note-clear"
+            onClick={() => setNote('')}
+            aria-label="清空备注"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {mode === 'transfer' ? (
@@ -502,6 +526,22 @@ export default function AddPage({
         </div>
       )}
 
+      {/* 打字时自绘键盘让位给系统键盘，但保存入口不能跟着消失 */}
+      {noteFocus && (
+        <div className="note-actions">
+          <button
+            className="btn btn-ghost"
+            onClick={() => (document.activeElement as HTMLElement | null)?.blur()}
+          >
+            收起
+          </button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>
+            {saving ? '保存中…' : '保存'}
+          </button>
+        </div>
+      )}
+
+
       <div className="keypad">
         <div className="keys">
           {['1', '2', '3', 'del', '4', '5', '6', 'clear', '7', '8', '9'].map((k) => (
@@ -624,25 +664,6 @@ export default function AddPage({
             if (created) setCategoryId(created.id)
           }}
         />
-      )}
-
-      {sheet === 'note' && (
-        <Sheet title="备注" onClose={() => setSheet(null)}>
-          <input
-            className="field"
-            style={{ textAlign: 'left', fontSize: 16, width: '100%' }}
-            placeholder="写点什么…"
-            value={noteDraft}
-            autoFocus
-            onChange={(e) => setNoteDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') { setNote(noteDraft); setSheet(null) }
-            }}
-          />
-          <button className="btn btn-primary btn-block" style={{ marginTop: 10 }} onClick={() => { setNote(noteDraft); setSheet(null) }}>
-            完成
-          </button>
-        </Sheet>
       )}
 
       {confirmDel && (

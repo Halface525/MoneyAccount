@@ -1046,6 +1046,91 @@ textarea {
   font-weight: 600;
 }
 
+/* 备注行：常驻在 chips 下面，点上去直接打字 */
+.note-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 8px;
+  padding: 9px 12px;
+  border-radius: 13px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.note-row.on {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.note-em {
+  font-size: 13px;
+  line-height: 1;
+  flex: none;
+  opacity: 0.55;
+}
+
+.note-row.on .note-em {
+  opacity: 1;
+}
+
+.note-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  color: var(--text);
+  background: transparent;
+  line-height: 1.3;
+}
+
+.note-input::placeholder {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.note-clear {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--text-3);
+  background: var(--surface-3);
+}
+
+.note-clear:active {
+  background: var(--line-strong);
+  color: var(--text-2);
+}
+
+/* 打字时的底部操作条：键盘收起来了，保存按钮得留着 */
+.note-actions {
+  display: flex;
+  gap: 10px;
+  padding: 6px 16px calc(12px + var(--safe-b));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.note-actions .btn {
+  flex: 1;
+  height: 44px;
+}
+
+/* 打字时把自绘键盘收起来，交给系统键盘，两个键盘不会同时抢位置 */
+.add-page.note-on .keypad {
+  display: none;
+}
+
+.add-page.note-on .cat-grid,
+.add-page.note-on .tf-wrap {
+  padding-bottom: 20px;
+}
+
 /* 转账：左右两个可点区域 + 中间的交换按钮 */
 /* 默认从上往下排：垂直居中会让 chips 和卡片之间空出一大块，看着像没加载完 */
 .tf-wrap {
@@ -1223,6 +1308,13 @@ textarea {
   .chip {
     padding: 5px 9px;
     font-size: 12px;
+  }
+  .note-row {
+    margin: 0 12px 6px;
+    padding: 7px 10px;
+  }
+  .note-input {
+    font-size: 12.5px;
   }
   .cat-grid {
     gap: 2px;
