@@ -648,6 +648,14 @@ textarea {
   line-height: 1;
 }
 
+/* 深色底上把线性图标提亮一点，避免分类色太暗看不清 */
+[data-theme='dark'] .cat-icon svg,
+[data-theme='dark'] .box svg,
+[data-theme='dark'] .ce-icon svg,
+[data-theme='dark'] .chat-avatar svg {
+  filter: brightness(1.12) saturate(1.05);
+}
+
 .tx-main {
   flex: 1;
   min-width: 0;

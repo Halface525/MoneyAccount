@@ -2,6 +2,7 @@ import { useApp } from '../lib/store'
 import { money } from '../lib/format'
 import type { Transaction } from '../db/types'
 import { IconRepeat } from './Icons'
+import { AppIcon } from '../lib/appIcons'
 
 export default function TransactionRow({
   tx,
@@ -17,7 +18,7 @@ export default function TransactionRow({
   const acc = accMap.get(tx.accountId)
   const toAcc = tx.toAccountId ? accMap.get(tx.toAccountId) : undefined
 
-  const icon = tx.type === 'transfer' ? '🔄' : (cat?.icon ?? '📦')
+  const icon = tx.type === 'transfer' ? 'arrow-left-right' : (cat?.icon ?? 'package')
   const color = tx.type === 'transfer' ? '#9C86C9' : (cat?.color ?? '#A2968A')
 
   let title: string
@@ -38,7 +39,7 @@ export default function TransactionRow({
         style={{ background: color + '1f', color }}
         aria-hidden
       >
-        {icon}
+        <AppIcon name={icon} size={18} color={color} />
       </span>
       <span className="tx-main">
         <span className="tx-title">

@@ -4,26 +4,9 @@ import { useApp } from '../lib/store'
 import { uid } from '../lib/format'
 import Sheet from './Sheet'
 import { IconTrash } from './Icons'
+import { AppIcon, isIconKey } from '../lib/appIcons'
+import { EXTRA_ICON_KEYS, PRIMARY_ICON_KEYS } from '../db/iconKeys'
 import type { Category } from '../db/types'
-
-export const CATEGORY_ICONS = [
-  '🍜','🍚','☕️','🍰','🥤','🍺','🛒','🛍️','👕','👟','🧴','💄','💊','🏥','🚇','🚌','🚕','⛽️','🚲','✈️',
-  '🏠','💡','💧','📱','🌐','🎮','🎬','🎵','📚','✏️','🏀','🏃','🐱','🐶','🎁','🧧','💰','📈','💼','🧾',
-  '📦','🔧','🪙','💳','🏦','🎓','👶','💍','🧳','🥗','🐟','🌸','🎂','🧸','🎸','⚽️','🚗','🧺','🫐','🍇',
-]
-
-/**
- * 常用的 23 个：6 列 × 4 行（最后一个是自定义输入框），
- * 其余收进「更多图标」，面板默认不会是一整屏密密麻麻的小格子。
- */
-export const PRIMARY_ICONS = [
-  '🍜','🍚','☕️','🍰','🥤','🛒',
-  '🛍️','👕','👟','🚇','🚕','✈️',
-  '🏠','💡','📱','🎮','📚','🎁',
-  '💊','🐱','💰','📈','💼',
-]
-
-export const EXTRA_ICONS = CATEGORY_ICONS.filter((ic) => !PRIMARY_ICONS.includes(ic))
 
 /** 只留 8 个，一排就放得下，不用横向滑 */
 export const CATEGORY_COLORS = [
@@ -43,11 +26,12 @@ export default function CategoryEditor({
 }) {
   const { categories, toast } = useApp()
   const [name, setName] = useState(cat?.name ?? '')
-  const [icon, setIcon] = useState(cat?.icon ?? '📦')
+  const [icon, setIcon] = useState(cat?.icon ?? 'package')
   const [color, setColor] = useState(cat?.color ?? CATEGORY_COLORS[1])
-  const [customIcon, setCustomIcon] = useState('')
+  // 老分类可能是用户自己输入的 emoji，编辑时把它放回第一个自定义格子
+  const [customIcon, setCustomIcon] = useState(isIconKey(cat?.icon) ? '' : (cat?.icon ?? ''))
   // 编辑的是老分类、而它的图标在「更多」里时，默认展开，免得看不到当前选中
-  const [showMore, setShowMore] = useState(!!cat && EXTRA_ICONS.includes(cat.icon))
+  const [showMore, setShowMore] = useState(!!cat && EXTRA_ICON_KEYS.includes(cat.icon))
   const [confirmDel, setConfirmDel] = useState(false)
   const [usedCount, setUsedCount] = useState(0)
 
@@ -98,7 +82,7 @@ export default function CategoryEditor({
       onClick={() => setIcon(ic)}
       aria-label={ic}
     >
-      {ic}
+      <AppIcon name={ic} size={20} color={icon === ic ? color : 'var(--text-2)'} />
     </button>
   )
 
@@ -117,7 +101,7 @@ export default function CategoryEditor({
       {/* 一进面板就能看到「这个分类长什么样」，名字和预览放同一行 */}
       <div className="ce-head">
         <div className="cat-icon ce-preview" style={{ background: color + '1f' }}>
-          {icon}
+          <AppIcon name={icon} size={26} color={color} />
         </div>
         <input
           className="ce-name"
@@ -159,13 +143,13 @@ export default function CategoryEditor({
             aria-label="自定义图标"
           />
         </label>
-        {PRIMARY_ICONS.map(iconCell)}
-        {showMore && EXTRA_ICONS.map(iconCell)}
+        {PRIMARY_ICON_KEYS.map(iconCell)}
+        {showMore && EXTRA_ICON_KEYS.map(iconCell)}
       </div>
 
       <div className="ce-more-row">
         <button className="ce-more" onClick={() => setShowMore((v) => !v)}>
-          {showMore ? '收起' : `更多图标 · ${EXTRA_ICONS.length}`}
+          {showMore ? '收起' : `更多图标 · ${EXTRA_ICON_KEYS.length}`}
         </button>
         <span className="ce-hint">第一个格子可粘贴任意 emoji</span>
       </div>
