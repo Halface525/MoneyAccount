@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { money } from '../lib/format'
 
 export interface TrendPoint {
   label: string
@@ -136,7 +137,7 @@ export default function TrendChart({
             zIndex: 2,
           }}
         >
-          {cur.label} · 支出 ¥{(cur.expense / 100).toFixed(0)} · 收入 ¥{(cur.income / 100).toFixed(0)}
+          {cur.label} · 支出 ¥{money(cur.expense)} · 收入 ¥{money(cur.income)}
         </div>
       )}
     </div>
